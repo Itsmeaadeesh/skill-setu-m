@@ -16,17 +16,44 @@ import {
 
 const PlatformContext = createContext();
 
+const INITIAL_ACCOUNTS = {
+  "jso.aadeesh@mospi.gov.in": {
+    id: "user-001",
+    email: "jso.aadeesh@mospi.gov.in",
+    password: "Learner@123",
+    role: "learner",
+    hasOnboarded: false,
+    name: "Aadeesh Sharma"
+  },
+  "faculty.nssta@mospi.gov.in": {
+    id: "user-trainer",
+    email: "faculty.nssta@mospi.gov.in",
+    password: "Trainer@123",
+    role: "trainer",
+    hasOnboarded: false,
+    name: "Prof. S. R. Mukhopadhyay"
+  },
+  "admin.mospi@mospi.gov.in": {
+    id: "user-admin",
+    email: "admin.mospi@mospi.gov.in",
+    password: "Admin@123",
+    role: "admin",
+    hasOnboarded: true,
+    name: "Dr. Arvind Subramanian, ISS"
+  }
+};
+
 export function PlatformProvider({ children }) {
-  // SSO Role: 'learner' | 'trainer' | 'admin'
+  // Authentication & Session State (Strictly In-Memory, No localStorage)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [accounts, setAccounts] = useState(INITIAL_ACCOUNTS);
+  const [currentAccountKey, setCurrentAccountKey] = useState(null);
   const [role, setRole] = useState("learner");
 
-  // Admin Impersonation Mode: When admin is previewing as a learner
-  const [impersonatedUserId, setImpersonatedUserId] = useState(null);
+  // Selected official for Admin read-only drill-down modal
+  const [selectedOfficialForDrilldown, setSelectedOfficialForDrilldown] = useState(null);
 
   // iGOT Six Functional Hubs Architecture
-  // Learner Hubs: 'learn' | 'competency' | 'career' | 'discuss' | 'network' | 'events'
-  // Trainer Hubs: 'trainer-studio' | 'trainer-qbank' | 'trainer-author' | 'trainer-published' | 'trainer-performance' | 'discuss'
-  // Admin Hubs: 'admin-analytics' | 'admin-workforce' | 'admin-roles' | 'admin-audit' | 'admin-directory'
   const [activeHub, setActiveHub] = useState("learn");
   const [hubSubTab, setHubSubTab] = useState("roadmap"); // Sub-tab within hub
 
@@ -51,10 +78,7 @@ export function PlatformProvider({ children }) {
   // Active User Profile (In-Memory Only, No localStorage)
   const [profiles, setProfiles] = useState(MOCK_PROFILES);
   const [activeUserId, setActiveUserId] = useState("user-001");
-  const currentActualUser = profiles.find((p) => p.id === activeUserId) || profiles[0];
-  const currentUser = impersonatedUserId
-    ? profiles.find((p) => p.id === impersonatedUserId) || currentActualUser
-    : currentActualUser;
+  const currentUser = profiles.find((p) => p.id === activeUserId) || profiles[0];
 
   // Dynamic Competency Matrix for the Active User (updates in memory upon quiz/course completion)
   const [userCompetencies, setUserCompetencies] = useState(() => {
@@ -63,13 +87,11 @@ export function PlatformProvider({ children }) {
 
   // Keep userCompetencies synced when active user changes
   useEffect(() => {
-    const user = impersonatedUserId
-      ? profiles.find((p) => p.id === impersonatedUserId) || currentActualUser
-      : currentActualUser;
-    if (user) {
+    const user = profiles.find((p) => p.id === activeUserId);
+    if (user && user.currentCompetencies) {
       setUserCompetencies({ ...user.currentCompetencies });
     }
-  }, [activeUserId, impersonatedUserId]);
+  }, [activeUserId]);
 
   // Target Role for Skill Gap Analysis
   const [targetRoleId, setTargetRoleId] = useState("role-sso");
@@ -259,61 +281,186 @@ export function PlatformProvider({ children }) {
     }
   ]);
 
-  // ACTIONS
+  // Authentication & Session Management
+  const login = (emailOrId, password) => {
+    const cleanId = (emailOrId || "").trim().toLowerCase();
+    const matchedKey = Object.keys(accounts).find(
+      (k) => k.toLowerCase() === cleanId || accounts[k].id.toLowerCase() === cleanId
+    );
 
-  // Switch Active User
-  const switchUser = (userId) => {
-    setActiveUserId(userId);
-    setImpersonatedUserId(null);
-    const user = profiles.find((p) => p.id === userId);
-    if (user) {
-      addToast(
-        "User Profile Switched",
-        `Now viewing as ${user.name} (${user.role} - ${user.cadre})`,
-        "success"
-      );
-      logAuditAction("USER_SWITCH_PROFILE", `Active profile changed to ${user.name} (${user.karmayogiId})`);
+    if (!matchedKey) {
+      logAuditAction("LOGIN_FAILED", `Failed authentication attempt for ID: ${emailOrId}`, emailOrId, "ANONYMOUS");
+      return { success: false, error: "Invalid Karmayogi ID or Password. Please try again." };
     }
-  };
 
-  // Switch Role (SSO Mock)
-  const switchRole = (newRole) => {
-    setRole(newRole);
-    setImpersonatedUserId(null);
-    if (newRole === "admin") {
+    const account = accounts[matchedKey];
+    if (account.password !== password) {
+      logAuditAction("LOGIN_FAILED", `Incorrect password for ID: ${emailOrId}`, emailOrId, account.role.toUpperCase());
+      return { success: false, error: "Invalid Karmayogi ID or Password. Please try again." };
+    }
+
+    setIsAuthenticated(true);
+    setCurrentAccountKey(matchedKey);
+    setRole(account.role);
+    setActiveUserId(account.id);
+
+    if (account.role === "admin") {
       setActiveHub("admin-analytics");
-      addToast("Role Switched to Admin", "Switched to MoSPI Leadership Executive Console.", "info");
-      logAuditAction("ROLE_SWITCH_ADMIN", "Elevated session to Admin / Leadership role");
-    } else if (newRole === "trainer") {
+    } else if (account.role === "trainer") {
       setActiveHub("trainer-studio");
-      addToast("Role Switched to Trainer", "Switched to NSSTA Faculty & Assessment Authoring Studio.", "info");
-      logAuditAction("ROLE_SWITCH_TRAINER", "Elevated session to Trainer / NSSTA Faculty role");
     } else {
       setActiveHub("learn");
       setHubSubTab("roadmap");
-      addToast("Role Switched to Learner", "Switched to Official Statistical Officer Learner View.", "info");
-      logAuditAction("ROLE_SWITCH_LEARNER", "Switched session to Statistical Officer Learner role");
     }
+
+    logAuditAction(
+      "USER_LOGIN_SUCCESS",
+      `Official authenticated successfully. Role: ${account.role.toUpperCase()}`,
+      `${account.name} (${account.email})`,
+      account.role.toUpperCase()
+    );
+
+    addToast("Welcome to Skill Setu", `Signed in as ${account.name} [${account.role.toUpperCase()}].`, "success");
+    return { success: true };
   };
 
-  // Admin Impersonation Action
-  const impersonateLearner = (learnerId) => {
-    const target = profiles.find((p) => p.id === learnerId);
-    if (!target) return;
-    setImpersonatedUserId(learnerId);
-    setRole("learner");
+  const loginWithParichay = (targetRole = "learner") => {
+    let email = "jso.aadeesh@mospi.gov.in";
+    if (targetRole === "trainer") email = "faculty.nssta@mospi.gov.in";
+    if (targetRole === "admin") email = "admin.mospi@mospi.gov.in";
+
+    const account = accounts[email];
+    setIsAuthenticated(true);
+    setCurrentAccountKey(email);
+    setRole(account.role);
+    setActiveUserId(account.id);
+
+    if (account.role === "admin") {
+      setActiveHub("admin-analytics");
+    } else if (account.role === "trainer") {
+      setActiveHub("trainer-studio");
+    } else {
+      setActiveHub("learn");
+      setHubSubTab("roadmap");
+    }
+
+    logAuditAction(
+      "PARICHAY_SSO_LOGIN",
+      `Authenticated via Jan Parichay National Gateway. Role: ${account.role.toUpperCase()}`,
+      `${account.name} (${account.email})`,
+      account.role.toUpperCase()
+    );
+
+    addToast("Parichay SSO Verified", `Signed in as ${account.name} (${account.role.toUpperCase()}).`, "success");
+    return { success: true };
+  };
+
+  const logout = () => {
+    const account = currentAccountKey ? accounts[currentAccountKey] : null;
+    if (account) {
+      logAuditAction(
+        "USER_LOGOUT",
+        `Session ended. Signed out of Skill Setu portal.`,
+        `${account.name} (${account.email})`,
+        account.role.toUpperCase()
+      );
+    }
+    setIsAuthenticated(false);
+    setCurrentAccountKey(null);
+    setSelectedOfficialForDrilldown(null);
+    setActiveHub("learn");
+    addToast("Session Concluded", "You have been securely logged out.", "info");
+  };
+
+  // Complete Learner Onboarding
+  const completeLearnerOnboarding = (data) => {
+    const updatedComps = { ...currentUser.currentCompetencies };
+
+    if (data.selfRatings) {
+      Object.entries(data.selfRatings).forEach(([compId, rating]) => {
+        let calibrated = Number(rating) || 2;
+        const yrs = Number(data.experienceYears) || 0;
+        if (yrs >= 4 && compId.startsWith("comp-stat")) {
+          calibrated = Math.min(5, calibrated + 1);
+        }
+        updatedComps[compId] = Math.max(1, Math.min(5, calibrated));
+      });
+    }
+
+    setProfiles((prev) =>
+      prev.map((p) => {
+        if (p.id === activeUserId) {
+          return {
+            ...p,
+            name: data.name || p.name,
+            role: data.designation || p.role,
+            cadre: data.cadre || p.cadre,
+            department: data.department || p.department,
+            location: data.location || p.location,
+            qualification: data.qualification || p.qualification,
+            experienceYears: Number(data.experienceYears) || p.experienceYears,
+            focusSkills: data.focusSkills || p.focusSkills || [],
+            currentCompetencies: updatedComps
+          };
+        }
+        return p;
+      })
+    );
+
+    setUserCompetencies(updatedComps);
+
+    if (currentAccountKey) {
+      setAccounts((prev) => ({
+        ...prev,
+        [currentAccountKey]: { ...prev[currentAccountKey], hasOnboarded: true, name: data.name || prev[currentAccountKey].name }
+      }));
+    }
+
+    logAuditAction(
+      "PROFILE_ONBOARDING_COMPLETED",
+      `Official finalized first-time competency profiling with designation ${data.designation || "JSO"}`
+    );
+
     setActiveHub("learn");
     setHubSubTab("roadmap");
-    addToast("Impersonation Active", `Now previewing dashboard as ${target.name} (Read-Only)`, "warning");
-    logAuditAction("ADMIN_IMPERSONATION_START", `Admin began previewing as ${target.name} (${target.karmayogiId})`);
+    addToast("Competency Profile Generated", "Your official FRAC competency profile has been calibrated and saved.", "success");
   };
 
-  const exitImpersonation = () => {
-    setImpersonatedUserId(null);
-    setRole("admin");
-    setActiveHub("admin-analytics");
-    addToast("Exited Impersonation", "Returned to MoSPI Admin Leadership Console.", "info");
-    logAuditAction("ADMIN_IMPERSONATION_END", "Admin exited preview mode and returned to Admin Console");
+  // Update Learner Profile from Competency Hub
+  const updateLearnerProfile = (data) => {
+    completeLearnerOnboarding(data);
+    addToast("Profile Updated", "Competency baseline and AI recommendations have recomputed.", "success");
+  };
+
+  // Complete Trainer Onboarding
+  const completeTrainerOnboarding = (data) => {
+    setProfiles((prev) =>
+      prev.map((p) => {
+        if (p.id === activeUserId) {
+          return {
+            ...p,
+            name: data.name || p.name,
+            role: data.role || p.role,
+            department: data.department || p.department,
+            qualification: data.qualification || p.qualification,
+            experienceYears: Number(data.experienceYears) || p.experienceYears,
+            subjectAreas: data.subjectAreas || []
+          };
+        }
+        return p;
+      })
+    );
+
+    if (currentAccountKey) {
+      setAccounts((prev) => ({
+        ...prev,
+        [currentAccountKey]: { ...prev[currentAccountKey], hasOnboarded: true, name: data.name || prev[currentAccountKey].name }
+      }));
+    }
+
+    logAuditAction("TRAINER_ONBOARDED", `Faculty finalized onboarding: ${data.name || "Faculty"}`);
+    setActiveHub("trainer-studio");
+    addToast("Faculty Onboarding Complete", "Welcome to the NSSTA Content Studio.", "success");
   };
 
   // Admin User Role Modification
@@ -714,8 +861,14 @@ export function PlatformProvider({ children }) {
   return (
     <PlatformContext.Provider
       value={{
+        isAuthenticated,
+        accounts,
+        currentAccount: currentAccountKey ? accounts[currentAccountKey] : null,
+        login,
+        loginWithParichay,
+        logout,
         role,
-        switchRole,
+        setRole,
         activeHub,
         setActiveHub,
         hubSubTab,
@@ -725,11 +878,12 @@ export function PlatformProvider({ children }) {
         profiles,
         currentUser,
         activeUserId,
-        switchUser,
-        impersonatedUserId,
-        impersonateLearner,
-        exitImpersonation,
+        completeLearnerOnboarding,
+        updateLearnerProfile,
+        completeTrainerOnboarding,
         changeUserRole,
+        selectedOfficialForDrilldown,
+        setSelectedOfficialForDrilldown,
         userCompetencies,
         targetRoleId,
         setTargetRoleId,
@@ -756,17 +910,12 @@ export function PlatformProvider({ children }) {
         runVirtualLabCode,
         auditLogs,
         logAuditAction,
-        generateCompetencyProfile,
         fontSize,
         setFontSize,
         highContrast,
         setHighContrast,
         language,
         setLanguage,
-        parichayModalOpen,
-        setParichayModalOpen,
-        psMatrixModalOpen,
-        setPsMatrixModalOpen,
         toasts,
         addToast,
         removeToast,

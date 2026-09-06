@@ -33,6 +33,7 @@ export default function LearnHubPage() {
     setActiveQuizModal,
     language,
     currentTargetRole,
+    currentUser,
   } = usePlatform();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -214,8 +215,19 @@ export default function LearnHubPage() {
             </div>
 
             <div className="space-y-3">
-              {IGOT_COURSES.slice(0, 4).map((course, idx) => {
+              {IGOT_COURSES.slice(0, 5).map((course, idx) => {
                 const isEnrolled = !!enrolledCourses[course.id];
+                
+                // Calculate dynamic semantic match based on user's focus skills
+                const userFocus = (currentUser?.focusSkills || ["survey design", "python", "national accounts"]).map(s => s.toLowerCase());
+                const courseTags = (course.semanticTags || []).map(t => t.toLowerCase());
+                const matchCount = courseTags.filter(t => userFocus.some(f => t.includes(f) || f.includes(t))).length;
+                
+                let dynamicScore = course.semanticScore || (88 + (idx * 2) % 10);
+                if (matchCount > 0) {
+                  dynamicScore = Math.min(99, 90 + matchCount * 3);
+                }
+
                 return (
                   <div
                     key={course.id}
@@ -226,16 +238,19 @@ export default function LearnHubPage() {
                         0{idx + 1}
                       </div>
                       <div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center flex-wrap gap-2">
                           <span className="text-xs font-bold text-gray-900">
                             {language === "HI" && course.titleHi ? course.titleHi : course.title}
                           </span>
                           <span className="text-[10px] font-mono bg-blue-50 text-blue-900 px-1.5 py-0.2 rounded border border-blue-200">
                             {course.code}
                           </span>
-                          {course.semanticScore && (
-                            <span className="text-[10px] font-bold bg-amber-50 text-amber-800 px-1.5 py-0.2 rounded border border-amber-300">
-                              ★ Semantic Match: {course.semanticScore}%
+                          <span className="text-[10px] font-bold bg-amber-50 text-amber-800 px-1.5 py-0.2 rounded border border-amber-300">
+                            ★ Semantic Match: {dynamicScore}%
+                          </span>
+                          {matchCount > 0 && (
+                            <span className="text-[9px] font-bold bg-emerald-50 text-emerald-700 px-1.5 py-0.2 rounded border border-emerald-300">
+                              Matches Your Priority Focus
                             </span>
                           )}
                         </div>

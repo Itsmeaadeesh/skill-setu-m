@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { usePlatform } from "../context/PlatformContext.jsx";
 import {
   Users,
@@ -15,7 +15,7 @@ export default function UserRoleManagementPage() {
   const {
     profiles,
     changeUserRole,
-    impersonateLearner,
+    setSelectedOfficialForDrilldown,
     currentUser,
     addToast,
   } = usePlatform();
@@ -152,12 +152,12 @@ export default function UserRoleManagementPage() {
                         <span>Edit Role</span>
                       </button>
                       <button
-                        onClick={() => impersonateLearner(p.id)}
-                        className="p-1.5 rounded hover:bg-amber-50 text-amber-800 border border-amber-300 flex items-center space-x-1 font-semibold text-[11px]"
-                        title="Preview as Learner"
+                        onClick={() => setSelectedOfficialForDrilldown(p)}
+                        className="p-1.5 rounded hover:bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center space-x-1 font-semibold text-[11px]"
+                        title="Inspect Official FRAC Profile"
                       >
                         <Eye className="w-3 h-3" />
-                        <span>View as Learner</span>
+                        <span>Inspect Profile</span>
                       </button>
                     </div>
                   </td>

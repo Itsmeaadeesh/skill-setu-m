@@ -6,10 +6,15 @@ import Footer from "./components/Footer.jsx";
 import ToastContainer from "./components/ToastContainer.jsx";
 import ChatWidget from "./components/ChatWidget.jsx";
 import ScoreUpdateModal from "./components/ScoreUpdateModal.jsx";
-import ParichayLoginModal from "./components/ParichayLoginModal.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
+import AdminOfficialDrilldownModal from "./components/AdminOfficialDrilldownModal.jsx";
 
-// Pages
+// Auth & Onboarding Pages
+import LoginPage from "./pages/LoginPage.jsx";
+import LearnerOnboardingPage from "./pages/LearnerOnboardingPage.jsx";
+import TrainerOnboardingPage from "./pages/TrainerOnboardingPage.jsx";
+
+// Portal Hubs & Pages
 import LearnHubPage from "./pages/LearnHubPage.jsx";
 import CompetencyProfilePage from "./pages/CompetencyProfilePage.jsx";
 import CareerHubPage from "./pages/CareerHubPage.jsx";
@@ -21,14 +26,44 @@ import AdminDashboard from "./pages/AdminDashboard.jsx";
 import WorkforcePlanningPage from "./pages/WorkforcePlanningPage.jsx";
 import UserRoleManagementPage from "./pages/UserRoleManagementPage.jsx";
 import AuditLogPage from "./pages/AuditLogPage.jsx";
-import PSComplianceMatrixPage from "./pages/PSComplianceMatrixPage.jsx";
 import QuizTakingModal from "./pages/QuizTakingModal.jsx";
 
 function AppContent() {
-  const { activeHub, role, psMatrixModalOpen, setPsMatrixModalOpen } = usePlatform();
+  const { isAuthenticated, currentAccount, role, activeHub } = usePlatform();
 
+  // 1. Unauthenticated Gateway: Full-screen authentic GoI login portal
+  if (!isAuthenticated) {
+    return (
+      <>
+        <LoginPage />
+        <ToastContainer />
+      </>
+    );
+  }
+
+  // 2. First-Time Learner Onboarding Wizard
+  if (role === "learner" && currentAccount && !currentAccount.hasOnboarded) {
+    return (
+      <>
+        <LearnerOnboardingPage />
+        <ToastContainer />
+      </>
+    );
+  }
+
+  // 3. First-Time Trainer Onboarding
+  if (role === "trainer" && currentAccount && !currentAccount.hasOnboarded) {
+    return (
+      <>
+        <TrainerOnboardingPage />
+        <ToastContainer />
+      </>
+    );
+  }
+
+  // 4. Authenticated Hub Router
   const renderActiveHub = () => {
-    // 1. Trainer Specialized Views
+    // Trainer Specialized Views
     if (role === "trainer") {
       switch (activeHub) {
         case "trainer-studio":
@@ -44,7 +79,7 @@ function AppContent() {
       }
     }
 
-    // 2. Admin Specialized Views
+    // Admin Leadership Views
     if (role === "admin") {
       switch (activeHub) {
         case "admin-analytics":
@@ -62,7 +97,7 @@ function AppContent() {
       }
     }
 
-    // 3. Learner Experience: The authentic iGOT Karmayogi SIX FUNCTIONAL HUBS
+    // Learner Experience: The authentic iGOT Karmayogi SIX FUNCTIONAL HUBS
     switch (activeHub) {
       case "learn":
         return <LearnHubPage />;
@@ -86,7 +121,7 @@ function AppContent() {
       {/* Official Government Portal Header */}
       <Header />
 
-      {/* Navigation Navbar (6 Hubs / Role Specific) */}
+      {/* Navigation Navbar (Role Specific & 6 Hubs) */}
       <Navbar />
 
       {/* Main Content Area */}
@@ -100,22 +135,7 @@ function AppContent() {
       {/* Modals & Overlays */}
       <QuizTakingModal />
       <ScoreUpdateModal />
-      <ParichayLoginModal />
-      {psMatrixModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 sm:p-6 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-2xl border-4 border-[#0B3D91] max-w-5xl w-full max-h-[90vh] overflow-y-auto p-6">
-            <div className="flex justify-end mb-2">
-              <button
-                onClick={() => setPsMatrixModalOpen(false)}
-                className="text-xs font-bold bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded text-gray-800"
-              >
-                ✕ Close Matrix
-              </button>
-            </div>
-            <PSComplianceMatrixPage />
-          </div>
-        </div>
-      )}
+      <AdminOfficialDrilldownModal />
       <ToastContainer />
       <ChatWidget />
     </div>

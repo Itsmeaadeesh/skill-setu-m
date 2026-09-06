@@ -1,9 +1,8 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { usePlatform } from "../context/PlatformContext.jsx";
 import { ShieldCheck, ExternalLink, Activity, Info, FileSpreadsheet, Award } from "lucide-react";
 
 export default function Footer() {
-  const { setPsMatrixModalOpen } = usePlatform();
   const [visitorCount, setVisitorCount] = useState(1482942);
 
   // Subtle live visitor counter increment
@@ -31,13 +30,10 @@ export default function Footer() {
             <span className="text-gray-300">NSSTA Greater Noida</span>
           </div>
 
-          <button
-            onClick={() => setPsMatrixModalOpen(true)}
-            className="text-[11px] bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-3 py-1 rounded font-bold flex items-center space-x-1.5 transition-colors"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-amber-400" />
-            <span>SIH 2026 PS Compliance Matrix (100% Aligned)</span>
-          </button>
+          <div className="text-[11px] bg-blue-950 text-amber-300 border border-blue-800 px-3 py-1 rounded font-bold flex items-center space-x-1.5">
+            <Award className="w-3.5 h-3.5 text-amber-400" />
+            <span>Official MoSPI Civil Service Portal</span>
+          </div>
         </div>
       </div>
 
