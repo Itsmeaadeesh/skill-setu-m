@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import {
   MOCK_PROFILES,
   COMPETENCIES,
@@ -29,6 +29,24 @@ export function PlatformProvider({ children }) {
   // Admin Hubs: 'admin-analytics' | 'admin-workforce' | 'admin-roles' | 'admin-audit' | 'admin-directory'
   const [activeHub, setActiveHub] = useState("learn");
   const [hubSubTab, setHubSubTab] = useState("roadmap"); // Sub-tab within hub
+
+  const setActiveTab = (tab) => {
+    if (tab === "skillgap" || tab === "competency") {
+      setActiveHub("competency");
+      setHubSubTab("skillgap");
+    } else if (tab === "dashboard" || tab === "learn") {
+      setActiveHub("learn");
+      setHubSubTab("roadmap");
+    } else if (tab === "courses") {
+      setActiveHub("learn");
+      setHubSubTab("catalogue");
+    } else if (tab === "assessments") {
+      setActiveHub("learn");
+      setHubSubTab("adaptive");
+    } else {
+      setActiveHub(tab);
+    }
+  };
 
   // Active User Profile (In-Memory Only, No localStorage)
   const [profiles, setProfiles] = useState(MOCK_PROFILES);
@@ -702,6 +720,8 @@ export function PlatformProvider({ children }) {
         setActiveHub,
         hubSubTab,
         setHubSubTab,
+        activeTab: activeHub,
+        setActiveTab,
         profiles,
         currentUser,
         activeUserId,

@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { PlatformProvider, usePlatform } from "./context/PlatformContext.jsx";
 import Header from "./components/Header.jsx";
 import Navbar from "./components/Navbar.jsx";
@@ -7,6 +7,7 @@ import ToastContainer from "./components/ToastContainer.jsx";
 import ChatWidget from "./components/ChatWidget.jsx";
 import ScoreUpdateModal from "./components/ScoreUpdateModal.jsx";
 import ParichayLoginModal from "./components/ParichayLoginModal.jsx";
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
 
 // Pages
 import LearnHubPage from "./pages/LearnHubPage.jsx";
@@ -123,8 +124,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <PlatformProvider>
-      <AppContent />
-    </PlatformProvider>
+    <ErrorBoundary>
+      <PlatformProvider>
+        <AppContent />
+      </PlatformProvider>
+    </ErrorBoundary>
   );
 }

@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { usePlatform } from "../context/PlatformContext.jsx";
 import {
   IGOT_COURSES,
@@ -240,7 +240,7 @@ export default function LearnHubPage() {
                           )}
                         </div>
                         <p className="text-[11px] text-gray-500 mt-0.5">
-                          {course.provider} • {course.level} • {course.durationHours} Hours • Addresses {course.competencyMapping.join(", ")}
+                          {course.provider} • {course.level} • {course.durationHours} Hours • Addresses {(course.competenciesTied || []).join(", ")}
                         </p>
                       </div>
                     </div>
