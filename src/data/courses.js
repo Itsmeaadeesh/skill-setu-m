@@ -3,6 +3,10 @@
 export const IGOT_COURSES = [
   {
     id: "igot-101",
+    semanticTags: ["sampling","stratified","survey design","greg","weights","nss","plfs","variance"],
+    titleHi: "उन्नत सर्वेक्षण प्रतिचयन एवं प्राक्कलन तकनीकें",
+    descHi: "एनएसएस सर्वेक्षणों के लिए स्तरीकृत बहु-स्तरीय प्रारूप, सर्वेक्षण भार अंशांकन, गैर-प्रतिक्रिया समायोजन और जैकनाइफ विचरण प्राक्कलन पर आधिकारिक व्यापक प्रशिक्षण।",
+    curriculumHi: ["मॉड्यूल 1: बहु-स्तरीय स्तरीकरण के सिद्धांत","मॉड्यूल 2: इष्टतम आवंटन और प्रतिदर्श आकार निर्धारण","मॉड्यूल 3: सहायक जनगणना योगों का उपयोग करते हुए अंशांकन भारण","मॉड्यूल 4: व्यावहारिक प्रयोगशाला: आर और पायथन में भार गणना"],
     code: "MOSPI-STAT-101",
     title: "Advanced Survey Sampling & Estimation Techniques",
     provider: "NSSTA Greater Noida & ISI Kolkata",
@@ -26,6 +30,10 @@ export const IGOT_COURSES = [
   },
   {
     id: "igot-102",
+    semanticTags: ["national accounts","sna","gdp","gva","macroeconomics","fisim","supply use"],
+    titleHi: "राष्ट्रीय लेखा प्रणाली (एसएनए 2008) एवं जीवीए संकलन",
+    descHi: "संस्थागत क्षेत्रों, उत्पादन सीमाओं, वित्तीय मध्यस्थता सेवाओं (एफआईएसआईएम) और आपूर्ति-उपयोग तालिकाओं को कवर करने वाला कठोर पाठ्यक्रम।",
+    curriculumHi: ["मॉड्यूल 1: एसएनए 2008 एवं 2025 संशोधनों का वैचारिक ढांचा","मॉड्यूल 2: विनिर्माण और सेवाओं के लिए क्षेत्रीय जीवीए संकलन","मॉड्यूल 3: भुगतान संतुलन एवं शेष विश्व के खाते","मॉड्यूल 4: व्यावहारिक केस स्टडी: आधार वर्ष संशोधन पद्धति"],
     code: "MOSPI-STAT-102",
     title: "System of National Accounts (SNA 2008) & GVA Compilation",
     provider: "National Accounts Division (NAD) & RBI Academy",
@@ -49,6 +57,10 @@ export const IGOT_COURSES = [
   },
   {
     id: "igot-103",
+    semanticTags: ["cpi","wpi","price index","inflation","jevons","hedonics","price statistics"],
+    titleHi: "उपभोक्ता मूल्य सूचकांक (सीपीआई): संकलन एवं हेदोनिक्स",
+    descHi: "1,181 ग्रामीण और 1,114 शहरी बाजारों में खुदरा मूल्य सत्यापन, डिजिटल कीमतों के लिए वेब स्क्रैपिंग और मौसमी समायोजन के लिए विस्तृत परिचालन प्रक्रियाएं।",
+    curriculumHi: ["मॉड्यूल 1: मूल्य उद्धरण सत्यापन एवं आउटलायर पहचान","मॉड्यूल 2: एकत्रीकरण सूत्र (जेवन्स, ड्यूटोट, कार्ली और लास्पेयर्स)","मॉड्यूल 3: लुप्त कीमतों का आरोपण और गुणवत्ता समायोजन","मॉड्यूल 4: फील्ड कोटेशन अपलोड के लिए स्वचालित पोर्टल संचालन"],
     code: "MOSPI-STAT-103",
     title: "Consumer Price Index (CPI): Compilation & Hedonics",
     provider: "Price Statistics Division (PSD)",
@@ -141,6 +153,10 @@ export const IGOT_COURSES = [
   },
   {
     id: "igot-107",
+    semanticTags: ["python","pandas","data wrangling","automation","data pipelines","scripts","microdata"],
+    titleHi: "आधिकारिक सांख्यिकी के लिए पायथन: डेटा सफाई से स्वचालन तक",
+    descHi: "सांख्यिकीय अधिकारियों के लिए विशेष रूप से तैयार किया गया स्वर्ण-मानक पायथन प्रोग्रामिंग पाठ्यक्रम: पांडास माइक्रोडाटा व्रैंगलिंग, स्वचालित सारणीकरण और त्रुटि रिपोर्टिंग।",
+    curriculumHi: ["मॉड्यूल 1: अधिकारियों के लिए पायथन बुनियादी सिद्धांत और ज्यूपिटर लैब","मॉड्यूल 2: पांडास के साथ माइक्रोडाटा व्रैंगलिंग (चंकड प्रोसेसिंग)","मॉड्यूल 3: मोस्पी सांख्यिकीय बुलेटिनों का स्वचालित प्रारूपण","मॉड्यूल 4: स्वचालित विसंगति का पता लगाने वाली पाइपलाइन बनाना"],
     code: "MOSPI-TECH-201",
     title: "Python for Official Statistics: From Cleaning to Automation",
     provider: "NSSTA & IIT Delhi (NPTEL)",
@@ -279,6 +295,10 @@ export const IGOT_COURSES = [
   },
   {
     id: "igot-113",
+    semanticTags: ["dpdp","privacy","data protection","governance","anonymization","k-anonymity","security"],
+    titleHi: "सांख्यिकीविदों के लिए डिजिटल व्यक्तिगत डेटा संरक्षण (डीपीडीपी) अधिनियम 2023",
+    descHi: "डीपीडीपी अधिनियम 2023 पर आवश्यक प्रशिक्षण: सांख्यिकीय छूट, वि-पहचान तकनीक, विभेदक गोपनीयता और आधिकारिक सर्वेक्षणों में डेटा उल्लघनों से बचाव।",
+    curriculumHi: ["मॉड्यूल 1: डीपीडीपी अधिनियम 2023 के प्रमुख प्रावधान एवं सांख्यिकीय छूट","मॉड्यूल 2: व्यावहारिक अनामिकरण: के-अनामिकता एवं सेल दमन","मॉड्यूल 3: सर्वेक्षण प्रारूप में डेटा संरक्षण प्रभाव आकलन (डीपीआईए)","मॉड्यूल 4: लोक प्रशासन में डेटा न्यासियों के कानूनी दायित्व"],
     code: "MOSPI-GOV-301",
     title: "Digital Personal Data Protection (DPDP) Act 2023 for Statisticians",
     provider: "DoPT & Ministry of Law and Justice",

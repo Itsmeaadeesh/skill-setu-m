@@ -1,112 +1,143 @@
 ﻿import React from "react";
 import { usePlatform } from "../context/PlatformContext.jsx";
 import {
-  LayoutDashboard,
-  UserCheck,
-  GitCompare,
-  Sparkles,
   BookOpen,
-  FileCheck2,
+  Award,
+  Briefcase,
+  MessagesSquare,
+  Users,
+  Calendar,
+  Sparkles,
   BarChart3,
-  FileSpreadsheet,
-  HelpCircle,
+  TrendingUp,
+  UserCheck,
+  ShieldCheck,
+  FileCheck2,
+  Layers,
 } from "lucide-react";
 
 export default function Navbar() {
-  const { activeTab, setActiveTab, role, language } = usePlatform();
+  const { activeHub, setActiveHub, role, language } = usePlatform();
 
-  const navItems = [
+  // 1. Learner Experience: The authentic iGOT Karmayogi SIX FUNCTIONAL HUBS
+  const learnerHubs = [
     {
-      id: "dashboard",
-      label: language === "HI" ? "डैशबोर्ड" : "Dashboard",
-      icon: LayoutDashboard,
-      roles: ["learner", "trainer", "admin"],
-    },
-    {
-      id: "profile",
-      label: language === "HI" ? "दक्षता प्रोफ़ाइल" : "Competency Profile",
-      icon: UserCheck,
-      roles: ["learner", "trainer", "admin"],
-    },
-    {
-      id: "skillgap",
-      label: language === "HI" ? "कौशल अंतर विश्लेषण" : "Skill-Gap Engine",
-      icon: GitCompare,
-      roles: ["learner", "admin"],
-    },
-    {
-      id: "recommendations",
-      label: language === "HI" ? "एआई अनुशंसाएं" : "AI Recommendations",
-      icon: Sparkles,
-      roles: ["learner", "admin"],
-      badge: "AI",
-    },
-    {
-      id: "catalogue",
-      label: language === "HI" ? "iGOT पाठ्यक्रम" : "iGOT Courses",
+      id: "learn",
+      label: language === "HI" ? "अध्ययन केंद्र" : "Learn Hub",
       icon: BookOpen,
-      roles: ["learner", "trainer", "admin"],
+      badge: "Core",
     },
     {
-      id: "assessments",
-      label:
-        role === "trainer"
-          ? language === "HI"
-            ? "एआई प्रश्न जनरेटर स्टूडियो"
-            : "AI Assessment Studio"
-          : language === "HI"
-          ? "मूल्यांकन एवं क्विज़"
-          : "Assessments & Quiz",
-      icon: FileCheck2,
-      roles: ["learner", "trainer", "admin"],
-      badge: role === "trainer" ? "Trainer" : undefined,
+      id: "competency",
+      label: language === "HI" ? "दक्षता केंद्र" : "Competency Hub",
+      icon: Award,
     },
     {
-      id: "admin",
-      label: language === "HI" ? "संगठन विश्लेषण" : "Org Analytics",
-      icon: BarChart3,
-      roles: ["admin", "trainer", "learner"],
-      badge: role === "admin" ? "Admin" : undefined,
+      id: "career",
+      label: language === "HI" ? "करियर केंद्र" : "Career Hub",
+      icon: Briefcase,
     },
     {
-      id: "reports",
-      label: language === "HI" ? "रिपोर्ट एवं ऑडिट" : "Reports",
-      icon: FileSpreadsheet,
-      roles: ["learner", "trainer", "admin"],
+      id: "discuss",
+      label: language === "HI" ? "संवाद मंच" : "Discuss Hub",
+      icon: MessagesSquare,
     },
     {
-      id: "help",
-      label: language === "HI" ? "सहायता / SIH दिशानिर्देश" : "Help & SIH Info",
-      icon: HelpCircle,
-      roles: ["learner", "trainer", "admin"],
+      id: "network",
+      label: language === "HI" ? "सहकर्मी नेटवर्क" : "Network Hub",
+      icon: Users,
+    },
+    {
+      id: "events",
+      label: language === "HI" ? "कार्यक्रम कैलेंडर" : "Events Hub",
+      icon: Calendar,
     },
   ];
 
+  // 2. Trainer Experience: Content Studio, Q-Bank, Manual Builder, Discuss as SME
+  const trainerHubs = [
+    {
+      id: "trainer-studio",
+      label: language === "HI" ? "कंटेंट एवं मूल्यांकन स्टूडियो" : "Trainer Studio",
+      icon: Sparkles,
+      badge: "GenAI",
+    },
+    {
+      id: "learn",
+      label: language === "HI" ? "पाठ्यक्रम कैटलॉग" : "iGOT Catalogue",
+      icon: BookOpen,
+    },
+    {
+      id: "discuss",
+      label: language === "HI" ? "संवाद एवं विशेषज्ञ परामर्श" : "Discuss (Faculty SME)",
+      icon: MessagesSquare,
+    },
+    {
+      id: "network",
+      label: language === "HI" ? "अधिकारी नेटवर्क" : "Officials Directory",
+      icon: Users,
+    },
+  ];
+
+  // 3. Admin Experience: Executive Analytics, Workforce Planning, Role Governance, Audit Log
+  const adminHubs = [
+    {
+      id: "admin-analytics",
+      label: language === "HI" ? "नेतृत्व एनालिटिक्स" : "Executive Analytics",
+      icon: BarChart3,
+    },
+    {
+      id: "admin-workforce",
+      label: language === "HI" ? "कार्यबल नियोजन 2026-29" : "Workforce Planning (2026-29)",
+      icon: TrendingUp,
+      badge: "Forecast",
+    },
+    {
+      id: "admin-roles",
+      label: language === "HI" ? "उपयोगकर्ता एवं पद प्रबंधन" : "User & Role Management",
+      icon: UserCheck,
+    },
+    {
+      id: "admin-audit",
+      label: language === "HI" ? "सुरक्षा एवं अनुपालन ऑडिट" : "Audit Log",
+      icon: ShieldCheck,
+      badge: "DPDP",
+    },
+    {
+      id: "learn",
+      label: language === "HI" ? "पाठ्यक्रम केंद्र" : "Learn Hub",
+      icon: BookOpen,
+    },
+  ];
+
+  const currentNavItems =
+    role === "admin" ? adminHubs : role === "trainer" ? trainerHubs : learnerHubs;
+
   return (
-    <nav className="bg-[#0B3D91] shadow-md border-b-2 border-amber-500 sticky top-0 z-30">
+    <nav className="bg-[#0B3D91] shadow-md border-b-2 border-amber-500 sticky top-0 z-30 select-none">
       <div className="max-w-7xl mx-auto px-2 sm:px-4">
         <div className="flex items-center space-x-1 overflow-x-auto py-1 scrollbar-none">
-          {navItems.map((item) => {
+          {currentNavItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeTab === item.id;
+            const isActive = activeHub === item.id;
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => setActiveHub(item.id)}
                 className={`flex items-center space-x-2 px-3.5 py-2.5 rounded text-xs sm:text-[13px] font-medium transition-all whitespace-nowrap relative ${
                   isActive
                     ? "bg-[#07265D] text-amber-300 font-bold shadow-inner border-b-2 border-amber-400"
                     : "text-gray-100 hover:bg-blue-900 hover:text-white"
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? "text-amber-400" : "text-blue-300"}`} />
+                <Icon className={`w-4 h-4 ${isActive ? "text-amber-300" : "text-blue-200"}`} />
                 <span>{item.label}</span>
                 {item.badge && (
                   <span
-                    className={`text-[9px] px-1 py-0.2 rounded font-bold uppercase tracking-wider ${
-                      item.badge === "AI"
-                        ? "bg-amber-400 text-blue-950"
-                        : "bg-blue-800 text-blue-100 border border-blue-600"
+                    className={`text-[9px] px-1.5 py-0.2 rounded font-bold uppercase tracking-wider ${
+                      isActive
+                        ? "bg-amber-400 text-black"
+                        : "bg-blue-800 text-amber-200 border border-blue-700"
                     }`}
                   >
                     {item.badge}

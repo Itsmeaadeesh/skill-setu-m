@@ -1,0 +1,197 @@
+﻿// NSSTA TPAC (Training Programme Advisory Committee) Accredited Programmes
+// In-person, residential and blended cohorts at NSSTA Campus, Greater Noida
+
+export const TPAC_PROGRAMMES = [
+  {
+    id: "tpac-01",
+    code: "TPAC-2026-FND",
+    title: "Foundational Induction Programme for Indian Statistical Service (ISS) Probationers",
+    division: "NSSTA Faculty of Induction Training",
+    venue: "NSSTA Greater Noida Campus (Residential)",
+    duration: "12 Weeks (Full Time)",
+    dates: "15 Oct 2026 – 08 Jan 2027",
+    seatsTotal: 40,
+    seatsAvailable: 8,
+    nominationRequired: true,
+    cadreEligibility: "ISS Group 'A' Probationers / Newly Inducted Officers",
+    category: "Statistical",
+    competenciesTied: ["comp-stat-1", "comp-stat-2", "comp-beh-1"],
+    targetProficiencyGain: 2,
+    description: "Intensive 3-month residential foundational curriculum covering national statistical architecture, international statistical harmonization (UNSD/IMF), administrative law, and macro-aggregate compilation.",
+    curriculum: [
+      "Macroeconomic Statistics & 2025 SNA Revisions",
+      "Large-scale Multistage Stratified Sampling & NSS Microdata",
+      "Central Civil Services (Conduct) Rules & Public Ethics",
+      "Field Attachment with Regional FOD Offices across 5 Zones"
+    ],
+    coordinator: "Dr. Vikramaditya Sengupta, ISS (Director, NSSTA)"
+  },
+  {
+    id: "tpac-02",
+    code: "TPAC-2026-SAM",
+    title: "Advanced Survey Methodology & Sampling Weight Calibration Workshop",
+    division: "Survey Design & Research Division (SDRD) & NSSTA",
+    venue: "NSSTA Greater Noida (Blended with Kolkata Lab)",
+    duration: "2 Weeks (Residential)",
+    dates: "20 Sep 2026 – 03 Oct 2026",
+    seatsTotal: 30,
+    seatsAvailable: 4,
+    nominationRequired: true,
+    cadreEligibility: "Senior Statistical Officers (SSO) & Assistant Directors",
+    category: "Statistical",
+    competenciesTied: ["comp-stat-1"],
+    targetProficiencyGain: 1,
+    description: "Hands-on masterclass for SSS and ISS officers engaged in socio-economic surveys. Deep dive into GREG estimation, non-response imputation, rotating panel frames, and jackknife variance estimation.",
+    curriculum: [
+      "Module 1: Construction of Dual Sampling Frames (Rural Census & Urban UFS)",
+      "Module 2: Calibration of Multipliers against Census Population Projections",
+      "Module 3: Non-sampling Error Detection & Scrutiny Routines",
+      "Module 4: Practical Lab: R svydesign and Python Survey Weighting"
+    ],
+    coordinator: "Shri S. K. Bhattacharya (Addl. Director General, SDRD)"
+  },
+  {
+    id: "tpac-03",
+    code: "TPAC-2026-NAD",
+    title: "National Accounts Compilation & SUT Modeling Intensive",
+    division: "National Accounts Division (NAD)",
+    venue: "Sardar Patel Bhawan, New Delhi & NSSTA Lab",
+    duration: "3 Weeks (Blended)",
+    dates: "05 Nov 2026 – 26 Nov 2026",
+    seatsTotal: 25,
+    seatsAvailable: 5,
+    nominationRequired: true,
+    cadreEligibility: "Officers posted in NAD / DES of States & UTs",
+    category: "Statistical",
+    competenciesTied: ["comp-stat-2"],
+    targetProficiencyGain: 1,
+    description: "Specialized training on Sectoral Gross Value Added (GVA), Supply and Use Tables (SUT), Financial Intermediation Services (FISIM), and rebasing of national macro aggregates.",
+    curriculum: [
+      "Institutional Sector Accounts (Financial, Non-financial, General Govt)",
+      "Rebasing of National Accounts: 2020-21 Series to Present",
+      "Deflation Techniques: Double Deflation vs Single Indicator Approach",
+      "State Domestic Product (GSDP) Harmonization Protocols"
+    ],
+    coordinator: "Smt. Manjula Saxena (Senior Director, NAD)"
+  },
+  {
+    id: "tpac-04",
+    code: "TPAC-2026-PYT",
+    title: "Python & Machine Learning for Official Statistics Automation",
+    division: "Center of Excellence in AI & Data Science, NSSTA",
+    venue: "NSSTA High-Performance Computing Center, Greater Noida",
+    duration: "2 Weeks (Full Time)",
+    dates: "12 Oct 2026 – 24 Oct 2026",
+    seatsTotal: 35,
+    seatsAvailable: 6,
+    nominationRequired: false,
+    cadreEligibility: "JSO, SSO, and Young Professionals with basic coding literacy",
+    category: "Technical",
+    competenciesTied: ["comp-tech-1", "comp-tech-5"],
+    targetProficiencyGain: 1,
+    description: "Hands-on coding bootcamp covering automated survey microdata wrangling with Pandas/Polars, machine learning algorithms for auto-coding NIC/NCO text descriptions, and reproducible analytical pipelines.",
+    curriculum: [
+      "High-performance Microdata Ingestion (Parquet & Chunked CSVs)",
+      "NLP Transformers for 5-digit National Industrial Classification",
+      "Automated Anomaly Detection in High-Frequency Price Feeds",
+      "Deploying Statistical Web Applications using Streamlit/FastAPI"
+    ],
+    coordinator: "Prof. Arvind Ramanathan (Advisor AI, MoSPI)"
+  },
+  {
+    id: "tpac-05",
+    code: "TPAC-2026-DPDP",
+    title: "DPDP Act 2023 Compliance & Statistical Disclosure Control (SDC)",
+    division: "Legal & Regulatory Compliance Cell, MoSPI & NSSTA",
+    venue: "NSSTA Greater Noida (Blended with Virtual Sessions)",
+    duration: "1 Week (Intensive)",
+    dates: "18 Nov 2026 – 24 Nov 2026",
+    seatsTotal: 50,
+    seatsAvailable: 12,
+    nominationRequired: false,
+    cadreEligibility: "All MoSPI / Line Ministry Statistical Officers",
+    category: "Digital Governance",
+    competenciesTied: ["comp-gov-1"],
+    targetProficiencyGain: 1,
+    description: "Operationalizing the Digital Personal Data Protection Act 2023 in national statistical collections. Learn microdata anonymization, k-anonymity, cell suppression, and Data Protection Impact Assessments (DPIA).",
+    curriculum: [
+      "Section 17 Exemptions for Research & National Statistics",
+      "Mathematical Framework of Statistical Disclosure Control (SDC)",
+      "Differential Privacy Implementations on Census Microdata",
+      "Legal Liabilities and Security Protocols for Data Fiduciaries"
+    ],
+    coordinator: "Dr. R. K. Srivastava (Joint Secretary, Administration)"
+  },
+  {
+    id: "tpac-06",
+    code: "TPAC-2026-GIS",
+    title: "Geospatial Statistics & Digital Enumeration Block Delineation",
+    division: "SDRD GIS Wing & Indian Institute of Remote Sensing (IIRS)",
+    venue: "IIRS Dehradun & NSSTA Field Camp",
+    duration: "2 Weeks (Field & Lab)",
+    dates: "01 Dec 2026 – 14 Dec 2026",
+    seatsTotal: 25,
+    seatsAvailable: 3,
+    nominationRequired: true,
+    cadreEligibility: "SDRD & FOD Survey Officers",
+    category: "Technical",
+    competenciesTied: ["comp-tech-4", "comp-gov-3"],
+    targetProficiencyGain: 1,
+    description: "Practical field mapping using QGIS, mobile GPS collection, and satellite imagery overlays for the 8th Economic Census. Integration with PM GatiShakti National Master Plan.",
+    curriculum: [
+      "Digital Delineation of Urban Frame Survey (UFS) Blocks",
+      "Mobile CAPI Geographic Tagging & Boundary Scrutiny",
+      "Overlaying Crop Cutting Experiment Data with Sentinel-2 Imagery",
+      "PM GatiShakti Spatial Data Publishing Standards"
+    ],
+    coordinator: "Shri Alok Vardhan (Superintending Geodesist, SDRD)"
+  },
+  {
+    id: "tpac-07",
+    code: "TPAC-2026-LDR",
+    title: "Leadership in Field Operations, GFR 2017 & Survey Logistics",
+    division: "Field Operations Division (FOD) Headquarters",
+    venue: "NSSTA Greater Noida",
+    duration: "10 Days (Residential)",
+    dates: "10 Jan 2027 – 20 Jan 2027",
+    seatsTotal: 45,
+    seatsAvailable: 9,
+    nominationRequired: true,
+    cadreEligibility: "Supervisory Officers (FOD Regional Heads & SSOs)",
+    category: "Behavioural",
+    competenciesTied: ["comp-beh-1", "comp-beh-3"],
+    targetProficiencyGain: 1,
+    description: "Crisis management in nationwide sample surveys, GeM procurement under General Financial Rules (GFR 2017), enumerator performance incentives, and field audit standards.",
+    curriculum: [
+      "GFR 2017 Guidelines for Field Office Contracting & Transport",
+      "Real-time CAPI Field Telemetry Monitoring & Quality Audits",
+      "Public Relations & Tackling High Non-Response in Urban Areas",
+      "Inter-personal Conflict Resolution in Large Enumeration Teams"
+    ],
+    coordinator: "Shri Harshwardhan Goel (Additional Director General, FOD)"
+  },
+  {
+    id: "tpac-08",
+    code: "TPAC-2026-CPI",
+    title: "Price Statistics Modernization & Scanner Data Integration Workshop",
+    division: "Price Statistics Division (PSD)",
+    venue: "NSSTA Greater Noida & RBI Mumbai",
+    duration: "1 Week (Specialized)",
+    dates: "15 Feb 2027 – 21 Feb 2027",
+    seatsTotal: 30,
+    seatsAvailable: 11,
+    nominationRequired: false,
+    cadreEligibility: "Officers working on CPI, WPI, or State Price Indices",
+    category: "Statistical",
+    competenciesTied: ["comp-stat-3"],
+    targetProficiencyGain: 1,
+    description: "Modernizing Indian Consumer Price Indices through web scraping of e-commerce prices, supermarket scanner data integration, and multilateral time-reversal price formulas.",
+    curriculum: [
+      "Jevons vs Dutot vs Carli Formulations under Scanner Data",
+      "Time-Product Dummy (TPD) & GEKS Hedonic Quality Adjustments",
+      "Automated Retail Scraping Pipelines for Digital Services",
+      "Validation of Rural Price Quotations from Weekly Haats"
+    ],
+    coordinator: "Dr. P. N. Murthy (Director, PSD New Delhi)"
+  }
+];

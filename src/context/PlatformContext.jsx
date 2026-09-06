@@ -7,6 +7,11 @@ import {
   QUESTION_BANK,
   MOCK_DOCUMENTS,
   MOCK_ORG_ANALYTICS,
+  TPAC_PROGRAMMES,
+  VIRTUAL_LABS,
+  MOCK_DISCUSSIONS,
+  MOCK_OFFICIALS_DIRECTORY,
+  MOCK_EVENTS,
 } from "../data/mockData.js";
 
 const PlatformContext = createContext();
@@ -15,42 +20,126 @@ export function PlatformProvider({ children }) {
   // SSO Role: 'learner' | 'trainer' | 'admin'
   const [role, setRole] = useState("learner");
 
-  // Navigation Tab
-  const [activeTab, setActiveTab] = useState("dashboard");
+  // Admin Impersonation Mode: When admin is previewing as a learner
+  const [impersonatedUserId, setImpersonatedUserId] = useState(null);
+
+  // iGOT Six Functional Hubs Architecture
+  // Learner Hubs: 'learn' | 'competency' | 'career' | 'discuss' | 'network' | 'events'
+  // Trainer Hubs: 'trainer-studio' | 'trainer-qbank' | 'trainer-author' | 'trainer-published' | 'trainer-performance' | 'discuss'
+  // Admin Hubs: 'admin-analytics' | 'admin-workforce' | 'admin-roles' | 'admin-audit' | 'admin-directory'
+  const [activeHub, setActiveHub] = useState("learn");
+  const [hubSubTab, setHubSubTab] = useState("roadmap"); // Sub-tab within hub
 
   // Active User Profile (In-Memory Only, No localStorage)
   const [profiles, setProfiles] = useState(MOCK_PROFILES);
   const [activeUserId, setActiveUserId] = useState("user-001");
-  const currentUser = profiles.find((p) => p.id === activeUserId) || profiles[0];
+  const currentActualUser = profiles.find((p) => p.id === activeUserId) || profiles[0];
+  const currentUser = impersonatedUserId
+    ? profiles.find((p) => p.id === impersonatedUserId) || currentActualUser
+    : currentActualUser;
 
   // Dynamic Competency Matrix for the Active User (updates in memory upon quiz/course completion)
   const [userCompetencies, setUserCompetencies] = useState(() => {
     return { ...currentUser.currentCompetencies };
   });
 
-  // Keep userCompetencies synced when activeUserId changes
+  // Keep userCompetencies synced when active user changes
   useEffect(() => {
-    const user = profiles.find((p) => p.id === activeUserId);
+    const user = impersonatedUserId
+      ? profiles.find((p) => p.id === impersonatedUserId) || currentActualUser
+      : currentActualUser;
     if (user) {
       setUserCompetencies({ ...user.currentCompetencies });
     }
-  }, [activeUserId]);
+  }, [activeUserId, impersonatedUserId]);
 
   // Target Role for Skill Gap Analysis
   const [targetRoleId, setTargetRoleId] = useState("role-sso");
   const currentTargetRole = TARGET_ROLES.find((r) => r.id === targetRoleId) || TARGET_ROLES[0];
 
-  // Enrolled Courses in-memory state: { [courseId]: { progress: number, enrolledAt: string, status: 'enrolled'|'in-progress'|'completed' } }
+  // Enrolled Courses in-memory state: { [courseId]: { progress: number, enrolledAt: string, status: 'in-progress'|'completed' } }
   const [enrolledCourses, setEnrolledCourses] = useState({
     "igot-101": { progress: 65, enrolledAt: "2026-08-15", status: "in-progress" },
     "igot-104": { progress: 40, enrolledAt: "2026-08-20", status: "in-progress" },
     "igot-113": { progress: 100, enrolledAt: "2026-07-10", status: "completed" },
   });
 
+  // NSSTA TPAC Training Programmes Nominations: { [tpacId]: { nominatedAt: string, status: 'Nominated' } }
+  const [tpacNominations, setTpacNominations] = useState({
+    "tpac-02": { nominatedAt: "2026-08-25", status: "Nominated" }
+  });
+
+  // Peer Discussions State
+  const [discussions, setDiscussions] = useState(MOCK_DISCUSSIONS);
+
+  // Officials Network & Connections State
+  const [myNetwork, setMyNetwork] = useState(new Set(["off-002", "off-004"]));
+
+  // Academic Events Calendar State
+  const [eventsList, setEventsList] = useState(
+    MOCK_EVENTS.map((e) => (e.id === "evt-01" ? { ...e, isRSVP: true } : { ...e, isRSVP: false }))
+  );
+
+  // Virtual Labs State
+  const [activeLabId, setActiveLabId] = useState(VIRTUAL_LABS[0].id);
+  const [labCode, setLabCode] = useState(VIRTUAL_LABS[0].starterCode);
+  const [labConsoleOutput, setLabConsoleOutput] = useState(VIRTUAL_LABS[0].cannedOutput);
+  const [isLabRunning, setIsLabRunning] = useState(false);
+
+  // In-Memory Audit & Compliance Log (Sensitive actions tracking)
+  const [auditLogs, setAuditLogs] = useState([
+    {
+      id: "aud-001",
+      timestamp: "2026-09-06 18:45:10",
+      actor: "Aadeesh Sharma (KY-MOSPI-2024-8841)",
+      role: "Learner",
+      action: "USER_LOGIN_PARICHAY",
+      details: "Authenticated via Jan Parichay National SSO Gateway (2FA Verified)",
+      ipAddress: "10.14.88.21"
+    },
+    {
+      id: "aud-002",
+      timestamp: "2026-09-06 18:50:22",
+      actor: "Aadeesh Sharma (KY-MOSPI-2024-8841)",
+      role: "Learner",
+      action: "COURSE_ENROLLMENT_IGOT",
+      details: "Enrolled in MOSPI-STAT-101: Advanced Survey Sampling Techniques",
+      ipAddress: "10.14.88.21"
+    },
+    {
+      id: "aud-003",
+      timestamp: "2026-09-06 19:12:05",
+      actor: "Dr. Vikramaditya Sengupta (KY-MOSPI-2012-0054)",
+      role: "Trainer",
+      action: "ASSESSMENT_PUBLISHED",
+      details: "Published test-live-1: MoSPI Official Statistics & Survey Sampling Assessment",
+      ipAddress: "10.14.92.104"
+    }
+  ]);
+
+  const logAuditAction = (action, details, actorOverride = null, roleOverride = null) => {
+    const actorName = actorOverride || `${currentUser.name} (${currentUser.karmayogiId})`;
+    const actorRole = roleOverride || role.toUpperCase();
+    const newLog = {
+      id: "aud-" + Date.now(),
+      timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+      actor: actorName,
+      role: actorRole,
+      action,
+      details,
+      ipAddress: "10.14.88." + (Math.floor(Math.random() * 80) + 20)
+    };
+    setAuditLogs((prev) => [newLog, ...prev]);
+  };
+
   // Accessibility Controls
   const [fontSize, setFontSize] = useState("base"); // 'sm' | 'base' | 'lg'
   const [highContrast, setHighContrast] = useState(false);
   const [language, setLanguage] = useState("EN"); // 'EN' | 'HI'
+
+  // Parichay SSO Modal & PS Compliance Matrix Modal
+  const [parichayModalOpen, setParichayModalOpen] = useState(false);
+  const [psMatrixModalOpen, setPsMatrixModalOpen] = useState(false);
 
   // Apply high-contrast & font-size class to document body
   useEffect(() => {
@@ -83,7 +172,7 @@ export function PlatformProvider({ children }) {
   // AI Assessment Generator State (Trainer Studio)
   const [uploadedDocs, setUploadedDocs] = useState(MOCK_DOCUMENTS);
   const [selectedDoc, setSelectedDoc] = useState(MOCK_DOCUMENTS[0]);
-  const [generatingStep, setGeneratingStep] = useState(0); // 0=idle, 1=Extract, 2=Segment, 3=Generate, 4=Validate, 5=Ready
+  const [generatingStep, setGeneratingStep] = useState(0);
   const [generatedQuestions, setGeneratedQuestions] = useState(QUESTION_BANK.slice(0, 6));
   const [publishedAssessments, setPublishedAssessments] = useState([
     {
@@ -95,6 +184,7 @@ export function PlatformProvider({ children }) {
       questions: QUESTION_BANK.slice(0, 5),
       passingScore: 60,
       attemptsCount: 142,
+      author: "NSSTA Faculty"
     },
     {
       id: "test-live-2",
@@ -105,6 +195,7 @@ export function PlatformProvider({ children }) {
       questions: QUESTION_BANK.filter((q) => q.competencyId === "comp-gov-1" || q.competencyId === "comp-tech-3"),
       passingScore: 60,
       attemptsCount: 389,
+      author: "Legal & Compliance Wing"
     },
     {
       id: "test-live-3",
@@ -115,10 +206,11 @@ export function PlatformProvider({ children }) {
       questions: QUESTION_BANK.filter((q) => q.competencyId.startsWith("comp-tech")),
       passingScore: 60,
       attemptsCount: 215,
+      author: "AI Center of Excellence"
     }
   ]);
 
-  // Quiz Taking Modal State
+  // Quiz Taking Modal State with Adaptive Branching support
   const [activeQuizModal, setActiveQuizModal] = useState({
     isOpen: false,
     assessment: null,
@@ -138,13 +230,13 @@ export function PlatformProvider({ children }) {
   const [chatMessages, setChatMessages] = useState([
     {
       sender: "bot",
-      text: "नमस्ते! I am Setu Saathi, your AI Statistical Competency Guide. How may I assist your learning journey in MoSPI/NSSTA today?",
+      text: "नमस्ते! I am Setu Saathi, your AI Statistical Competency Guide on iGOT Karmayogi. How may I assist your learning journey in MoSPI / NSSTA today?",
       timestamp: "Just now",
       suggestions: [
         "Why was Python for Official Statistics recommended to me?",
         "What are my critical skill gaps for promotion to Senior Statistical Officer?",
-        "How is Jevons Formula used in CPI compilation?",
-        "Explain the statistical exemption under DPDP Act 2023."
+        "Show available NSSTA TPAC Training Programmes",
+        "How does the Adaptive Assessment engine adjust difficulty?"
       ]
     }
   ]);
@@ -154,6 +246,7 @@ export function PlatformProvider({ children }) {
   // Switch Active User
   const switchUser = (userId) => {
     setActiveUserId(userId);
+    setImpersonatedUserId(null);
     const user = profiles.find((p) => p.id === userId);
     if (user) {
       addToast(
@@ -161,22 +254,57 @@ export function PlatformProvider({ children }) {
         `Now viewing as ${user.name} (${user.role} - ${user.cadre})`,
         "success"
       );
+      logAuditAction("USER_SWITCH_PROFILE", `Active profile changed to ${user.name} (${user.karmayogiId})`);
     }
   };
 
   // Switch Role (SSO Mock)
   const switchRole = (newRole) => {
     setRole(newRole);
+    setImpersonatedUserId(null);
     if (newRole === "admin") {
-      setActiveTab("admin");
-      addToast("Role Switched to Admin", "Switched to MoSPI / NSSTA Leadership Admin Console.", "info");
+      setActiveHub("admin-analytics");
+      addToast("Role Switched to Admin", "Switched to MoSPI Leadership Executive Console.", "info");
+      logAuditAction("ROLE_SWITCH_ADMIN", "Elevated session to Admin / Leadership role");
     } else if (newRole === "trainer") {
-      setActiveTab("assessments");
+      setActiveHub("trainer-studio");
       addToast("Role Switched to Trainer", "Switched to NSSTA Faculty & Assessment Authoring Studio.", "info");
+      logAuditAction("ROLE_SWITCH_TRAINER", "Elevated session to Trainer / NSSTA Faculty role");
     } else {
-      setActiveTab("dashboard");
+      setActiveHub("learn");
+      setHubSubTab("roadmap");
       addToast("Role Switched to Learner", "Switched to Official Statistical Officer Learner View.", "info");
+      logAuditAction("ROLE_SWITCH_LEARNER", "Switched session to Statistical Officer Learner role");
     }
+  };
+
+  // Admin Impersonation Action
+  const impersonateLearner = (learnerId) => {
+    const target = profiles.find((p) => p.id === learnerId);
+    if (!target) return;
+    setImpersonatedUserId(learnerId);
+    setRole("learner");
+    setActiveHub("learn");
+    setHubSubTab("roadmap");
+    addToast("Impersonation Active", `Now previewing dashboard as ${target.name} (Read-Only)`, "warning");
+    logAuditAction("ADMIN_IMPERSONATION_START", `Admin began previewing as ${target.name} (${target.karmayogiId})`);
+  };
+
+  const exitImpersonation = () => {
+    setImpersonatedUserId(null);
+    setRole("admin");
+    setActiveHub("admin-analytics");
+    addToast("Exited Impersonation", "Returned to MoSPI Admin Leadership Console.", "info");
+    logAuditAction("ADMIN_IMPERSONATION_END", "Admin exited preview mode and returned to Admin Console");
+  };
+
+  // Admin User Role Modification
+  const changeUserRole = (userId, newCadreRole) => {
+    setProfiles((prev) =>
+      prev.map((p) => (p.id === userId ? { ...p, role: newCadreRole } : p))
+    );
+    addToast("Official Role Updated", `Role updated to ${newCadreRole} in administrative registry.`, "success");
+    logAuditAction("ADMIN_USER_ROLE_CHANGE", `Updated role of User ID ${userId} to ${newCadreRole}`);
   };
 
   // Course Enrollment
@@ -199,6 +327,30 @@ export function PlatformProvider({ children }) {
       `Successfully enrolled in "${course.title}". Added to your Active Learning Roadmap.`,
       "success"
     );
+    logAuditAction("COURSE_ENROLLMENT_IGOT", `Enrolled in ${course.code}: ${course.title}`);
+  };
+
+  // TPAC Nomination Action
+  const nominateForTPAC = (tpacId) => {
+    const prog = TPAC_PROGRAMMES.find((p) => p.id === tpacId);
+    if (!prog) return;
+
+    if (tpacNominations[tpacId]) {
+      addToast("Nomination Under Review", `Your official nomination for "${prog.title}" has already been transmitted to NSSTA.`, "info");
+      return;
+    }
+
+    setTpacNominations((prev) => ({
+      ...prev,
+      [tpacId]: { nominatedAt: new Date().toISOString().split("T")[0], status: "Nominated" }
+    }));
+
+    addToast(
+      "TPAC Nomination Submitted",
+      `Nomination submitted for ${prog.title} at ${prog.venue}. Forwarded to Division Head for approval.`,
+      "success"
+    );
+    logAuditAction("TPAC_NOMINATION_SUBMIT", `Submitted nomination for TPAC Programme ${prog.code} (${prog.title})`);
   };
 
   // Update Course Progress
@@ -213,9 +365,111 @@ export function PlatformProvider({ children }) {
     });
   };
 
+  // Discussion Actions
+  const addDiscussionReply = (threadId, replyText) => {
+    const newReply = {
+      id: "rep-" + Date.now(),
+      authorName: currentUser.name,
+      authorCadre: role === "trainer" ? `${currentUser.role} (NSSTA Faculty)` : currentUser.role,
+      isFaculty: role === "trainer",
+      authorAvatar: currentUser.avatar,
+      postedDate: "Just now",
+      content: replyText
+    };
+
+    setDiscussions((prev) =>
+      prev.map((t) => (t.id === threadId ? { ...t, replies: [...t.replies, newReply] } : t))
+    );
+    addToast("Reply Posted", "Your response has been published to the MoSPI Peer Discussion Board.", "success");
+    logAuditAction("DISCUSSION_REPLY_POSTED", `Posted reply to Discussion Thread ID: ${threadId}`);
+  };
+
+  const addDiscussionThread = (newThread) => {
+    const thread = {
+      id: "disc-" + Date.now(),
+      title: newThread.title,
+      division: newThread.division || currentUser.department,
+      topic: newThread.topic || "General Statistical Methodology",
+      authorName: currentUser.name,
+      authorCadre: role === "trainer" ? `${currentUser.role} (NSSTA Faculty)` : currentUser.role,
+      authorAvatar: currentUser.avatar,
+      postedDate: "Just now",
+      upvotes: 1,
+      tags: newThread.tags || ["MoSPI", "Survey Discussion"],
+      content: newThread.content,
+      replies: []
+    };
+
+    setDiscussions((prev) => [thread, ...prev]);
+    addToast("Discussion Thread Created", "New thread published to Discuss Hub.", "success");
+    logAuditAction("DISCUSSION_THREAD_CREATED", `Created Discussion Thread: "${thread.title}"`);
+  };
+
+  const upvoteDiscussion = (threadId) => {
+    setDiscussions((prev) =>
+      prev.map((t) => (t.id === threadId ? { ...t, upvotes: t.upvotes + 1 } : t))
+    );
+  };
+
+  // Network Connection Toggle
+  const toggleNetworkConnection = (officerId) => {
+    setMyNetwork((prev) => {
+      const next = new Set(prev);
+      if (next.has(officerId)) {
+        next.delete(officerId);
+        addToast("Connection Removed", "Official removed from My Network.", "info");
+      } else {
+        next.add(officerId);
+        addToast("Connected on Civil Service Network", "Added official to your peer network directory.", "success");
+        logAuditAction("NETWORK_PEER_CONNECTED", `Connected with Officer ID: ${officerId}`);
+      }
+      return next;
+    });
+  };
+
+  // Event RSVP Toggle
+  const toggleEventRSVP = (eventId) => {
+    setEventsList((prev) =>
+      prev.map((e) => {
+        if (e.id === eventId) {
+          const newStatus = !e.isRSVP;
+          addToast(
+            newStatus ? "RSVP Confirmed" : "RSVP Withdrawn",
+            newStatus
+              ? `You are confirmed for "${e.title}". Calendar invite queued.`
+              : `RSVP cancelled for "${e.title}".`,
+            newStatus ? "success" : "info"
+          );
+          if (newStatus) {
+            logAuditAction("EVENT_RSVP_CONFIRMED", `Confirmed attendance for Event ID: ${eventId} (${e.title})`);
+          }
+          return {
+            ...e,
+            isRSVP: newStatus,
+            registeredCount: newStatus ? e.registeredCount + 1 : e.registeredCount - 1,
+          };
+        }
+        return e;
+      })
+    );
+  };
+
+  // Virtual Lab Code Execution Simulator
+  const runVirtualLabCode = (customCode = null) => {
+    const currentLab = VIRTUAL_LABS.find((l) => l.id === activeLabId) || VIRTUAL_LABS[0];
+    setIsLabRunning(true);
+    setLabConsoleOutput("Executing in sandbox container (MoSPI Python/SQL runtime)...\n[WAIT] Allocating cloud memory...\n");
+
+    setTimeout(() => {
+      setIsLabRunning(false);
+      setLabConsoleOutput(currentLab.cannedOutput);
+      addToast("Lab Execution Complete", `Successfully ran ${currentLab.title}. 0 Errors found.`, "success");
+      logAuditAction("VIRTUAL_LAB_EXECUTED", `Executed Virtual Lab: ${currentLab.title}`);
+    }, 1200);
+  };
+
   // Rule-based Competency Profile Generator
   const generateCompetencyProfile = (formInput) => {
-    // Simulates deterministic AI profiling based on designation, cadre, qualifications, experience
     const newComp = { ...userCompetencies };
     const exp = parseFloat(formInput.experienceYears) || 3;
 
@@ -237,7 +491,6 @@ export function PlatformProvider({ children }) {
 
     setUserCompetencies(newComp);
 
-    // Update in profiles array in-memory
     setProfiles((prev) =>
       prev.map((p) =>
         p.id === activeUserId
@@ -256,9 +509,10 @@ export function PlatformProvider({ children }) {
 
     addToast(
       "AI Competency Profile Formulated",
-      "Skill matrix regenerated from cadre parameters and service record.",
+      "Skill matrix regenerated from cadre parameters and service record under FRAC guidelines.",
       "success"
     );
+    logAuditAction("COMPETENCY_PROFILE_REGENERATED", `Profile re-evaluated for ${currentUser.name}`);
   };
 
   // AI Assessment Generator Simulation (Progress Stepper)
@@ -274,12 +528,12 @@ export function PlatformProvider({ children }) {
       { step: 5, delay: 4800, msg: "Assessment items ready for NSSTA Trainer Review!" },
     ];
 
-    steps.forEach(({ step, delay, msg }) => {
+    steps.forEach(({ step, delay }) => {
       setTimeout(() => {
         setGeneratingStep(step);
         if (step === 5) {
-          // Add questions based on doc
           addToast("AI Question Generation Complete", `${doc.suggestedQuestionsCount} questions ready for trainer verification.`, "success");
+          logAuditAction("AI_QUESTIONS_SYNTHESIZED", `Generated MCQ pool from manual: ${doc.name}`);
         }
       }, delay);
     });
@@ -321,15 +575,36 @@ export function PlatformProvider({ children }) {
       questions: approved,
       passingScore: 60,
       attemptsCount: 0,
+      author: `${currentUser.name} (NSSTA Faculty)`
     };
 
     setPublishedAssessments((prev) => [newAssessment, ...prev]);
     setGeneratingStep(0);
     addToast(
       "Assessment Published to iGOT Hub",
-      `"${newAssessment.title}" is now available for all MoSPI officials to take.`,
+      `"${newAssessment.title}" is now available for all MoSPI officials.`,
       "success"
     );
+    logAuditAction("ASSESSMENT_PUBLISHED", `Trainer published: ${newAssessment.title}`);
+  };
+
+  // Trainer: Author New Assessment from Scratch (Manual Builder)
+  const authorManualAssessment = (customAssessment) => {
+    const newAssessment = {
+      id: "test-manual-" + Date.now(),
+      title: customAssessment.title,
+      topic: customAssessment.topic || "Custom Statistical Assessment",
+      competencyIds: customAssessment.competencyIds || ["comp-stat-1"],
+      timeLimitMinutes: customAssessment.timeLimitMinutes || 15,
+      questions: customAssessment.questions,
+      passingScore: customAssessment.passingScore || 60,
+      attemptsCount: 0,
+      author: `${currentUser.name} (NSSTA Faculty)`
+    };
+
+    setPublishedAssessments((prev) => [newAssessment, ...prev]);
+    addToast("Manual Assessment Published", `"${newAssessment.title}" created from scratch and published.`, "success");
+    logAuditAction("ASSESSMENT_MANUAL_PUBLISHED", `Trainer authored from scratch: ${newAssessment.title}`);
   };
 
   // Complete Assessment & Upgrade Competency Score
@@ -348,7 +623,6 @@ export function PlatformProvider({ children }) {
           [primaryCompId]: nextLevel,
         }));
 
-        // Trigger celebratory upgrade modal!
         setLevelUpModal({
           isOpen: true,
           skillName: compInfo?.name || "Official Statistical Methodology",
@@ -362,6 +636,7 @@ export function PlatformProvider({ children }) {
           `Congratulations! Your proficiency in ${compInfo?.name} increased from Level ${currentLevel} to Level ${nextLevel}.`,
           "success"
         );
+        logAuditAction("COMPETENCY_LEVEL_UPGRADE", `Learner ${currentUser.name} achieved Level ${nextLevel} in ${compInfo?.name}`);
       }
     } else {
       addToast(
@@ -369,10 +644,11 @@ export function PlatformProvider({ children }) {
         `You scored ${scoreCount}/${totalQuestions} (${scorePercent}%). Passing score is ${assessment.passingScore}%. Review explanations below.`,
         passed ? "success" : "info"
       );
+      logAuditAction("ASSESSMENT_ATTEMPT_COMPLETED", `Attempted ${assessment.title}: Scored ${scorePercent}%`);
     }
   };
 
-  // Rule-Based AI Chat Assistant Responses
+  // AI Chat Assistant
   const sendChatMessage = (userText) => {
     const newMsg = { sender: "user", text: userText, timestamp: "Just now" };
     setChatMessages((prev) => [...prev, newMsg]);
@@ -382,23 +658,26 @@ export function PlatformProvider({ children }) {
     let suggestions = [];
 
     if (lower.includes("why") && (lower.includes("recommend") || lower.includes("course") || lower.includes("python"))) {
-      reply = `Based on your profile as ${currentUser.role} in ${currentUser.department}, your target role (${currentTargetRole.title}) requires Python for Official Statistics at Level 3. Your current level is 2. Completing "Python for Official Statistics (MOSPI-TECH-201)" directly closes this 1-level gap and equips you with automated survey microdata wrangling skills.`;
-      suggestions = ["What is the next course on my roadmap?", "Show my largest skill gaps"];
+      reply = `Based on your profile as ${currentUser.role} in ${currentUser.department}, your target role (${currentTargetRole.title}) requires Python for Official Statistics at Level 3. Your current level is 2. Completing "Python for Official Statistics (MOSPI-TECH-201)" directly closes this 1-level gap.`;
+      suggestions = ["Show NSSTA TPAC Programmes", "What are my critical skill gaps?"];
+    } else if (lower.includes("tpac") || lower.includes("workshop") || lower.includes("program")) {
+      reply = `NSSTA's Training Programme Advisory Committee (TPAC) offers in-person residential masterclasses at the Greater Noida campus. The "Advanced Survey Methodology Workshop" and "Python for Official Statistics Automation" cohort are currently open for nomination.`;
+      suggestions = ["Take me to TPAC Programmes", "How do I apply for nomination?"];
+    } else if (lower.includes("adaptive") || lower.includes("difficulty") || lower.includes("quiz")) {
+      reply = `Skill Setu's Adaptive Assessment Engine adjusts question difficulty dynamically: if you answer 2 consecutive questions correctly, the next question automatically pulls from the Advanced tier; if you get 2 incorrect, it shifts to the Beginner tier to isolate your exact knowledge boundary.`;
+      suggestions = ["Take an Adaptive Diagnostic Quiz", "Explain my last quiz mistake"];
     } else if (lower.includes("gap") || lower.includes("promotion") || lower.includes("sso") || lower.includes("next")) {
-      reply = `To transition from ${currentUser.role} to ${currentTargetRole.title}, you have identified gaps in: 1) Python for Official Statistics (Gap: -1), 2) National Accounts & GDP (Gap: -1), and 3) Data Privacy & DPDP Act 2023 (Gap: -1). I recommend starting with the 24-hour Advanced Survey Sampling course or DPDP Compliance module.`;
-      suggestions = ["Enroll me in DPDP Act 2023", "Take the Survey Sampling diagnostic quiz"];
+      reply = `To transition from ${currentUser.role} to ${currentTargetRole.title}, you have identified gaps in: 1) Python for Official Statistics (Gap: -1), 2) National Accounts & GDP (Gap: -1), and 3) Data Privacy & DPDP Act 2023 (Gap: -1). You can bridge them through iGOT self-paced courses or NSSTA residential cohorts.`;
+      suggestions = ["Enroll me in DPDP Act 2023", "Show Career Progression Ladder"];
     } else if (lower.includes("jevons") || lower.includes("cpi") || lower.includes("price")) {
-      reply = `In MoSPI Price Statistics, the Jevons formula compiles the unweighted geometric mean of price relatives: J = prod(P_t / P_0)^(1/N). It satisfies the time-reversal and transitivity tests, preventing the upward substitution bias inherent in the arithmetic Carli index.`;
-      suggestions = ["How is WPI different from CPI?", "Recommend courses for Price Statistics"];
+      reply = `In MoSPI Price Statistics, the Jevons formula compiles the unweighted geometric mean of price relatives: J = prod(P_t / P_0)^(1/N). It satisfies the time-reversal and transitivity tests, preventing the upward substitution bias of the Carli index.`;
+      suggestions = ["How is WPI different from CPI?", "Open Price Statistics Virtual Lab"];
     } else if (lower.includes("dpdp") || lower.includes("privacy")) {
-      reply = `Section 17 of India's Digital Personal Data Protection (DPDP) Act 2023 provides exemptions for processing personal data for statistical and scientific research purposes, provided the data is not used to make decisions affecting the specific data principal and appropriate statistical disclosure controls (k-anonymity, suppression) are enforced.`;
-      suggestions = ["Take the DPDP Act compliance quiz", "What is statistical disclosure control?"];
-    } else if (lower.includes("mistake") || lower.includes("quiz") || lower.includes("wrong")) {
-      reply = `Looking at your recent attempts: In Question 1 regarding First Stage Units (FSUs) in urban areas under PLFS, remember that MoSPI uses Urban Frame Survey (UFS) blocks as FSUs in urban areas, not municipality wards or individual households. In rural areas, Census villages serve as the FSUs.`;
-      suggestions = ["Retake the PLFS quiz", "Show me the PLFS course on iGOT"];
+      reply = `Section 17 of India's Digital Personal Data Protection (DPDP) Act 2023 provides exemptions for processing personal data for statistical and scientific research purposes, provided the data is not used to make decisions affecting the specific data principal and statistical disclosure controls (k-anonymity, cell suppression) are enforced.`;
+      suggestions = ["Open DPDP Virtual Lab", "Take the DPDP compliance quiz"];
     } else {
-      reply = `Under MoSPI/NSSTA competency frameworks, each role is calibrated across Statistical, Technical, Digital Governance, and Behavioural domains. You can use the Skill-Gap Engine to visualize radar benchmarks, or browse the iGOT Course Catalogue for NSSTA-accredited modules.`;
-      suggestions = ["What are the 4 MoSPI competency domains?", "Show org-wide analytics"];
+      reply = `Under MoSPI/NSSTA competency frameworks, each role is calibrated across Statistical, Technical, Digital Governance, and Behavioural domains under Mission Karmayogi's FRAC model. Explore the Six Hubs: Learn, Competency, Career, Discuss, Network, and Events!`;
+      suggestions = ["Open Learn Hub", "View Discuss Forum"];
     }
 
     setTimeout(() => {
@@ -419,12 +698,18 @@ export function PlatformProvider({ children }) {
       value={{
         role,
         switchRole,
-        activeTab,
-        setActiveTab,
+        activeHub,
+        setActiveHub,
+        hubSubTab,
+        setHubSubTab,
         profiles,
         currentUser,
         activeUserId,
         switchUser,
+        impersonatedUserId,
+        impersonateLearner,
+        exitImpersonation,
+        changeUserRole,
         userCompetencies,
         targetRoleId,
         setTargetRoleId,
@@ -432,6 +717,25 @@ export function PlatformProvider({ children }) {
         enrolledCourses,
         enrollInCourse,
         updateCourseProgress,
+        tpacNominations,
+        nominateForTPAC,
+        discussions,
+        addDiscussionReply,
+        addDiscussionThread,
+        upvoteDiscussion,
+        myNetwork,
+        toggleNetworkConnection,
+        eventsList,
+        toggleEventRSVP,
+        activeLabId,
+        setActiveLabId,
+        labCode,
+        setLabCode,
+        labConsoleOutput,
+        isLabRunning,
+        runVirtualLabCode,
+        auditLogs,
+        logAuditAction,
         generateCompetencyProfile,
         fontSize,
         setFontSize,
@@ -439,6 +743,10 @@ export function PlatformProvider({ children }) {
         setHighContrast,
         language,
         setLanguage,
+        parichayModalOpen,
+        setParichayModalOpen,
+        psMatrixModalOpen,
+        setPsMatrixModalOpen,
         toasts,
         addToast,
         removeToast,
@@ -450,8 +758,9 @@ export function PlatformProvider({ children }) {
         approveQuestion,
         rejectQuestion,
         editQuestion,
-        publishedAssessments,
         publishGeneratedQuiz,
+        authorManualAssessment,
+        publishedAssessments,
         activeQuizModal,
         setActiveQuizModal,
         levelUpModal,

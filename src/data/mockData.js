@@ -3,3 +3,8 @@ export * from "./profiles.js";
 export * from "./courses.js";
 export * from "./questions.js";
 export * from "./analytics.js";
+export * from "./tpac.js";
+export * from "./virtualLabs.js";
+export * from "./discussions.js";
+export * from "./network.js";
+export * from "./events.js";

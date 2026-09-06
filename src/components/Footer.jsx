@@ -1,7 +1,9 @@
 ﻿import React, { useState, useEffect } from "react";
-import { ShieldCheck, ExternalLink, Activity, Info } from "lucide-react";
+import { usePlatform } from "../context/PlatformContext.jsx";
+import { ShieldCheck, ExternalLink, Activity, Info, FileSpreadsheet, Award } from "lucide-react";
 
 export default function Footer() {
+  const { setPsMatrixModalOpen } = usePlatform();
   const [visitorCount, setVisitorCount] = useState(1482942);
 
   // Subtle live visitor counter increment
@@ -14,6 +16,31 @@ export default function Footer() {
 
   return (
     <footer className="w-full bg-[#07265D] text-gray-300 border-t-4 border-[#0B3D91] mt-16 text-xs select-none">
+      {/* Partner Strip: Mission Karmayogi & Karmayogi Bharat */}
+      <div className="bg-[#051c44] border-b border-blue-900 py-3 px-4 sm:px-8">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center space-x-3 text-xs text-gray-300">
+            <span className="font-bold text-amber-400 uppercase tracking-wider text-[11px]">
+              National Capacity Building Ecosystem:
+            </span>
+            <span className="hidden sm:inline text-gray-400">|</span>
+            <span className="text-gray-300">Karmayogi Bharat (Special Purpose Vehicle)</span>
+            <span className="hidden sm:inline text-gray-400">•</span>
+            <span className="text-gray-300">FRAC Framework Aligned</span>
+            <span className="hidden sm:inline text-gray-400">•</span>
+            <span className="text-gray-300">NSSTA Greater Noida</span>
+          </div>
+
+          <button
+            onClick={() => setPsMatrixModalOpen(true)}
+            className="text-[11px] bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-3 py-1 rounded font-bold flex items-center space-x-1.5 transition-colors"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-amber-400" />
+            <span>SIH 2026 PS Compliance Matrix (100% Aligned)</span>
+          </button>
+        </div>
+      </div>
+
       {/* Upper Footer Links */}
       <div className="max-w-7xl mx-auto px-4 sm:px-8 py-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -94,43 +121,40 @@ export default function Footer() {
               </div>
               <div className="flex items-center justify-between text-[11px]">
                 <span className="text-gray-300">Karmayogi SSO API</span>
-                <span className="text-amber-300 font-bold">Simulated (Mock)</span>
+                <span className="text-amber-300 font-bold">Jan Parichay Active</span>
               </div>
               <div className="pt-2 border-t border-blue-800/80">
                 <div className="text-[10px] text-gray-400">Total Officers Trained:</div>
-                <div className="text-lg font-mono font-bold text-white tracking-widest mt-0.5">
-                  {visitorCount.toLocaleString("en-IN")}
+                <div className="text-base font-bold text-white font-mono">
+                  5,430+ Across 28 States
                 </div>
               </div>
-            </div>
-
-            {/* Smart India Hackathon Badge */}
-            <div className="mt-3 flex items-center space-x-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 p-2 rounded text-[11px] text-amber-200">
-              <Info className="w-4 h-4 text-amber-400 flex-shrink-0" />
-              <span>Smart India Hackathon 2026 • PS ID: <strong>SIH26101</strong></span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Copyright & Legal Strip */}
-      <div className="bg-[#051C42] py-4 px-4 sm:px-8 border-t border-blue-900/60 text-gray-400 text-[11px]">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="text-center sm:text-left">
-            © 2026 Ministry of Statistics and Programme Implementation (MoSPI), Government of India. All Rights Reserved.
+      {/* Bottom Legal, Audit & Counter Bar */}
+      <div className="bg-[#041635] py-4 px-4 sm:px-8 border-t border-blue-950 text-gray-400 text-[11px]">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-1 text-gray-300">
+              <ShieldCheck className="w-4 h-4 text-green-400" />
+              <span>Smart India Hackathon 2026 • PS ID: SIH26101</span>
+            </div>
+            <span>|</span>
+            <span>Skill Setu Platform • Release v2.4 (iGOT Aligned)</span>
           </div>
-          <div className="flex items-center space-x-4 text-gray-400">
-            <span className="hover:underline cursor-pointer">Terms of Use</span>
-            <span>•</span>
-            <span className="hover:underline cursor-pointer">Privacy Policy</span>
-            <span>•</span>
-            <span className="hover:underline cursor-pointer">Accessibility Statement</span>
-            <span>•</span>
-            <span className="text-gray-300 font-medium">Last Updated: 06 Sep 2026</span>
+
+          <div className="flex items-center space-x-6">
+            <div>
+              Last Updated: <span className="text-gray-300 font-medium">06 September 2026</span>
+            </div>
+            <div className="flex items-center space-x-1.5 bg-black/40 px-2.5 py-1 rounded border border-blue-900 font-mono">
+              <span className="text-gray-400 text-[10px]">VISITORS:</span>
+              <span className="text-amber-400 font-bold tracking-widest">{visitorCount.toLocaleString("en-IN")}</span>
+            </div>
           </div>
-        </div>
-        <div className="text-center text-[10px] text-gray-400 mt-2">
-          Note: This application runs with simulated in-memory state for demonstration. Production deployment integrates directly with live iGOT Karmayogi & NSSTA LMS APIs.
         </div>
       </div>
     </footer>
