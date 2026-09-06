@@ -276,7 +276,6 @@ Judges evaluating the platform for Smart India Hackathon 2026 can follow this 5-
 1. **Step 1: Inspect the Learner Dashboard**
    - Note the official MoSPI/NSSTA government header, Ashoka Stambh crest, and Tiranga ribbon.
    - Observe the **Competency Heatmap** showing Level 1 to Level 5 color coding for *Aadeesh Sharma (JSO)*.
-   - Note the **Priority Skill Gaps** against the target role *Senior Statistical Officer*.
 2. **Step 2: Explore the Skill-Gap Engine**
    - Click the **"Skill-Gap Engine"** tab.
    - Switch the target role dropdown from *Senior Statistical Officer* to *Deputy Director (National Accounts)*.
