@@ -24,5 +24,11 @@ dist-ssr
 *.sw?
 
 .vercel
+.env
+.env*.local
+*.db
+*.db-journal
+uploads
+server/uploads
+write_file.py
 
-.vercel

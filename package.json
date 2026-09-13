@@ -1,15 +1,19 @@
 {
   "name": "skill-setu",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "server": "npm run start --prefix server",
+    "fullstack": "concurrently -n \"API,WEB\" -c \"bgBlue.bold,bgMagenta.bold\" \"npm run server\" \"npm run dev\"",
+    "seed": "npm run seed --prefix server",
+    "test:e2e": "node tests/e2e-verification.js",
     "build": "vite build",
-    "lint": "oxlint",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
     "@tailwindcss/vite": "^4.3.3",
     "autoprefixer": "^10.5.5",
     "clsx": "^2.1.1",
@@ -19,13 +23,17 @@
     "react-dom": "^19.2.8",
     "recharts": "^3.10.1",
     "tailwind-merge": "^3.6.0",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "zod": "^4.6.4"
   },
   "devDependencies": {
+    "@types/node": "^26.5.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
+    "concurrently": "^9.1.2",
     "oxlint": "^1.79.0",
+    "typescript": "^7.0.2",
     "vite": "^8.2.2"
   }
 }

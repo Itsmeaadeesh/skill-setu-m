@@ -1,305 +1,240 @@
-﻿# 🇮🇳 Skill Setu (कौशल सेतु)
-## AI-Enabled Skill Intelligence & Learning Platform for MoSPI / NSSTA
-### Smart India Hackathon 2026 — Problem Statement ID: SIH26101
+# 🌉 Skill Setu — AI-Enabled Skill Assessment & Course Recommendation Platform
+
+> **"Skill Setu" (Bridging Competencies to Careers)** is a production-grade, full-stack ed-tech web application that diagnoses learner deficiencies through interactive self-ratings and validated baseline assessments, performs automated skill-gap analysis against target career tracks, sequences linear foundational-first course roadmaps, and synthesizes verified diagnostic MCQs from uploaded study materials (PDF/PPT/DOCX with Tesseract OCR) using **Google Gemini 1.5/2.0 Flash**.
+
+[![React](https://img.shields.io/badge/React_19-TypeScript-blue?logo=react)](https://react.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-Express_TS-green?logo=node.js)](https://nodejs.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-ORM-teal?logo=prisma)](https://prisma.io/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL_%26_Auth-emerald?logo=supabase)](https://supabase.com/)
+[![Gemini](https://img.shields.io/badge/Google_Gemini-1.5_Flash-orange?logo=google)](https://aistudio.google.com/)
+[![Tailwind CSS](https://img.shields.io/badge/TailwindCSS_v4-UI-38bdf8?logo=tailwindcss)](https://tailwindcss.com/)
 
 ---
 
-## 📌 Executive Summary
+## 🚀 Key Highlights & Core Modules
 
-**Skill Setu** (कौशल सेतु) is an enterprise-grade, AI-enabled competency intelligence and adaptive learning platform engineered specifically for the **Ministry of Statistics and Programme Implementation (MoSPI)** and the **National Statistical Systems Training Academy (NSSTA)**, Government of India.
+1. **Auth & Role-Based Access Control**:
+   - Supabase Auth supporting Email/Password and Google OAuth sign-in.
+   - Dual roles: `learner` and `admin`, enforced via Express authentication middleware verifying Supabase JWTs.
+   - First-time learner onboarding wizard with career track selection (`Frontend Developer`, `Data Analyst`, `Full Stack AI Engineer`).
+   - 1-Click Evaluator Personas for immediate testing without registration friction.
 
-Designed in full compliance with the **Framework for Roles, Activities and Competencies (FRAC)** under **Mission Karmayogi**, Skill Setu bridges the critical gap between national statistical mandates and civil service workforce capabilities. It provides automated competency profiling, diagnostic skill-gap visualization against promotional benchmarks, transparent explainable learning recommendations mapped to iGOT Karmayogi, and an in-situ AI assessment generator that turns ministry manuals into accredited psychometric examinations.
+2. **Skill Assessment & Diagnostic Calibration**:
+   - Interactive 1-5 proficiency level sliders with real-world competency descriptors.
+   - Standardized baseline MCQ quizzes with timers and question pagination.
+   - Persisted in Prisma `SkillProfile` model (`userId`, `skillId`, `level`, `source: quiz/self-rated`).
 
----
+3. **Mathematical Skill-Gap Analysis**:
+   - Compares learner's `SkillProfile` against `TrackRequirement` model (`requiredLevel - currentLevel`).
+   - Outputs ranked deficit list sorted descending, tagged as `Foundational`, `Intermediate`, or `Advanced`.
+   - Real-time overall track readiness percentage calculation.
 
-## 🏛️ Ministry & Institutional Context
+4. **Curated Linear Course Recommendation Engine**:
+   - Maintains a `Course` model tagged by `skillId` and difficulty level.
+   - Automatically matches courses to active skill gaps, ordered foundational-first into a linear step-by-step roadmap.
 
-| Entity | Role in Statistical System | Key Responsibilities |
-| :--- | :--- | :--- |
-| **MoSPI** | Apex Ministry | Formulation of official statistical policy, national accounts, macroeconomic indices (CPI, IIP), and census oversight. |
-| **NSSTA** | Central Training Academy | Located in Greater Noida; responsible for foundational and in-service capacity building of the Indian Statistical Service (ISS) and Subordinate Statistical Service (SSS). |
-| **SDRD** | Survey Design & Research Division | Survey methodology, multi-stage sampling frames, questionnaire formulation (Kolkata). |
-| **NAD** | National Accounts Division | Compilation of Gross Value Added (GVA), GDP, Supply-Use Tables, and capital formation (New Delhi). |
-| **PSD** | Price Statistics Division | Monthly compilation of Consumer Price Index (CPI Rural/Urban) across 1,181 villages and 1,114 urban markets. |
-| **ESD** | Economic Statistics Division | Index of Industrial Production (IIP) and Annual Survey of Industries (ASI). |
-| **DQAD** | Data Quality Assurance Division | Automated validation scripts, scrutiny of enterprise returns, and sampling error control (Kolkata). |
-| **FOD** | Field Operations Division | Nationwide network of regional field offices conducting primary CAPI-based household and enterprise surveys. |
+5. **AI Quiz Generation with Gemini Flash & Tesseract OCR**:
+   - Upload syllabus, lecture notes, or textbooks in PDF, DOCX, or PPTX format to Supabase Storage.
+   - Built-in text extractor: `pdf-parse`, `mammoth` (DOCX), and automated **Tesseract.js OCR** fallback for scanned/image-based PDFs.
+   - Single backend service `generateQuizFromText()` calling Google Gemini API (`@google/generative-ai`) with `responseMimeType: "application/json"`.
+   - Strict Zod schema validation ensuring `{ question, options[4], correct_option: 0-3, explanation, difficulty }`.
+   - Automatic 1-retry error recovery on malformed responses with graceful fallback.
 
----
+6. **Instant Telemetry & Scoring**:
+   - Instant automated grading comparing submitted options against answer keys.
+   - Persisted in `QuizAttempt` model (`userId`, `quizId`, `score`, `percentage`, `passed`, `answersJson`).
+   - Dynamically elevates the learner's `SkillProfile` proficiency level based on test performance.
 
-## 🎯 Smart India Hackathon 2026 (PS ID: SIH26101) Problem Alignment
+7. **Real-time Recalculation**:
+   - After quiz submission or rating changes, the platform re-computes skill gaps and re-sequences recommended paths immediately.
 
-The Ministry of Statistics and Programme Implementation posed the challenge of modernizing civil service learning:
-1. **Challenge 1: Opaque Competency Mapping** — Officials across cadres (ISS, SSS, field staff) lack transparent visibility into required competencies for higher-level postings.
-2. **Challenge 2: Generic, Non-Explainable Recommendations** — LMS platforms recommend courses based on generic keywords rather than calculated competency deficits.
-3. **Challenge 3: High Authoring Overhead for Assessments** — NSSTA faculty spend weeks manually drafting examination items from 200+ page statistical survey manuals.
-4. **Challenge 4: Disconnected Learning Records** — Training hours on iGOT Karmayogi often do not translate dynamically into verified competency level upgrades.
-
-**Skill Setu solves all four challenges through an integrated, deterministic AI intelligence engine.**
-
----
-
-## 🎨 Visual Identity & GIGW Compliance Standards
-
-Skill Setu intentionally rejects generic SaaS startup design trends in favor of an **authentic, authoritative Indian Government Portal** look and feel:
-
-- **Official Color Palette**:
-  - **Primary Navy**: `#0B3D91` (Official Government of India Blue)
-  - **Deep Gov Navy**: `#07265D` (Header utility & table header backgrounds)
-  - **Saffron Accent**: `#FF9933` (Tricolor high-contrast accent & CTA badges)
-  - **Chakra Blue**: `#000080` (Ashoka Chakra 24-spoke motif)
-  - **India Green**: `#138808` (Tricolor lower ribbon & success indicators)
-  - **Background Neutral**: `#F4F6F9` (Official light administrative background)
-- **National Emblem of India**:
-  - High-precision SVG Lion Capital of Ashoka with the national motto **"सत्यमेव जयते"** (*Truth Alone Triumphs*) in formal Devanagari script.
-- **Tricolor Ribbon Bar**:
-  - Continuous Saffron, White, and Green ribbon strip with a central 24-spoke Ashoka Chakra symbol positioned beneath the primary header.
-- **Typography**:
-  - Formal Serif Headings (`Georgia`, `Merriweather`) paired with ultra-clean, legible sans-serif body typography (`Noto Sans`, system UI).
-- **Accessibility & GIGW 3.0 Compliance**:
-  - **"Skip to Main Content"** direct keyboard anchor.
-  - **Font Size Multipliers**: Instant toggle between `A-` (14px), `A` (16px), and `A+` (18px).
-  - **High Contrast Mode**: Instant inverted dark/high-visibility yellow contrast theme for visually impaired users.
-  - **Bilingual Interface**: Quick toggle between English and हिन्दी (Devanagari).
-- **Tabular Data Presentation**:
-  - Bordered data grids, crisp contrast ratios, formal status badges, and zero playful/neon emojis.
+8. **Rich Visual Dashboards (Recharts)**:
+   - **Learner Dashboard**: 360° Competency Radar Chart, Proficiency vs Requirement Bar Chart, ranked gap list, linear path cards, and attempt history table with pedagogy review modal.
+   - **Admin Dashboard**: Aggregate cohort telemetry, Most Common Platform Gaps Bar Chart, Average Scores by Track Bar Chart, quiz repository management, and enrolled learner directory.
 
 ---
 
-## ⚙️ Architecture & Technical Stack
+## 🏛️ System Architecture
 
 ```mermaid
-graph TD
-    A[Browser Client] --> B[Skill Setu Application]
-    subgraph Frontend Architecture
-        B --> C[Vite 8 + React 19]
-        B --> D[Tailwind CSS v4]
-        B --> E[Recharts Visualization Engine]
-        B --> F[Lucide React Government Icons]
+flowchart TD
+    subgraph Client["Frontend (React 19 + TypeScript + Vite + TailwindCSS)"]
+        UI["Modern Card & Sidebar UI"]
+        Recharts["Recharts (Radar & Bar Visualizations)"]
+        SupaClient["Supabase Auth & Storage Client"]
+        State["PlatformContext (Session & Data Telemetry)"]
     end
-    subgraph In-Memory State Layer - Zero LocalStorage
-        B --> G[PlatformContext Provider]
-        G --> H[User Profiles & Cadres]
-        G --> I[Dynamic Competency Matrix]
-        G --> J[Enrolled iGOT Modules]
-        G --> K[Live Assessment Bank]
-        G --> L[AI Chatbot Context Engine]
+
+    subgraph Backend["Backend API (Node.js + Express + TypeScript)"]
+        AuthMiddleware["Auth Middleware (Supabase JWT / Local Fallback)"]
+        Controllers["Express Route Controllers"]
+        
+        subgraph Services["Core Engine Services"]
+            AIService["ai.service.ts (Gemini Flash + Zod Validation)"]
+            DocService["document.service.ts (Parsers + Tesseract OCR)"]
+            GapService["gapAnalysis.service.ts (Deficit Ranking Engine)"]
+            RecService["recommendation.service.ts (Linear Sequencing)"]
+        end
     end
-    subgraph Simulated AI Engines - Deterministic
-        B --> M[Competency Profiler Engine]
-        B --> N[Skill-Gap Radar & Delta Engine]
-        B --> O[Explainable Recommendation Engine]
-        B --> P[Document Question Synthesis Stepper]
-        B --> Q[Setu Saathi Contextual Assistant]
+
+    subgraph CloudAndDB["Data Layer & External Services"]
+        SupabaseDB[("Supabase PostgreSQL / SQLite Dev DB")]
+        PrismaORM["Prisma ORM Client"]
+        GeminiAPI["Google Gemini API (1.5 / 2.0 Flash)"]
+        SupabaseStore["Supabase Storage (documents bucket)"]
     end
+
+    UI --> State
+    State --> Recharts
+    State --> SupaClient
+    State -->|HTTP + Bearer Token| AuthMiddleware
+    AuthMiddleware --> Controllers
+    Controllers --> Services
+    DocService -->|Extract / OCR| AIService
+    AIService -->|JSON Output| GeminiAPI
+    Controllers --> PrismaORM
+    PrismaORM --> SupabaseDB
+    SupaClient -->|Direct File Upload| SupabaseStore
 ```
 
-### Technology Specifications
+---
 
-| Layer | Technology | Rationale |
-| :--- | :--- | :--- |
-| **Runtime / Build** | **Vite 8.2 + Node 24** | Sub-second HMR, instant startup, production bundle in under 550ms. |
-| **UI Library** | **React 19** | Component modularity, functional hooks, concurrent rendering. |
-| **Styling Engine** | **Tailwind CSS v4** | Custom color variables, official government spacing tokens, zero runtime CSS overhead. |
-| **Charts / Visualizations** | **Recharts 3.10** | SVG-rendered Radar Charts, Grouped Bar Charts, Donut charts, and Linear Trend graphs. |
-| **State Persistence** | **In-Memory React Context** | **Strictly NO `localStorage` or `sessionStorage`** per hackathon guidelines. State survives active navigation and resets cleanly upon refresh. |
-| **Iconography** | **Lucide React** | Clean, accessible vector icons for government interfaces. |
+## 🗄️ Database Schema (Prisma ORM)
+
+The database schema strictly adheres to the 10 domain entities:
+
+- **`User`**: Account details, role (`learner` | `admin`), `targetTrackId`, onboarding flag.
+- **`Track`**: Career tracks (`Frontend Developer`, `Data Analyst`, `Full Stack & AI Engineer`).
+- **`Skill`**: Competencies tagged by category (`React`, `TypeScript`, `SQL`, `Python`, `Node.js`).
+- **`TrackRequirement`**: Target proficiency levels (1-5 scale) required for each track.
+- **`SkillProfile`**: Learner's calibrated level (1-5) and assessment source (`quiz` | `self-rated`).
+- **`Course`**: Curriculum courses tagged by `skillId` and difficulty (`foundational`, `intermediate`, `advanced`).
+- **`Quiz`**: Diagnostic baseline assessments and AI-synthesized quizzes from documents.
+- **`QuizQuestion`**: Individual MCQs with 4 options, `correct_option` index, and pedagogy explanation.
+- **`QuizAttempt`**: Completed student tests with score %, pass status, timestamp, and full review JSON.
 
 ---
 
-## 🧩 Core Interactive Modules Breakdown
+## ⚙️ Environment Variables
 
-### 1. Mock SSO & Role Selector
-- Accessible from the top utility navigation bar.
-- Instant role switching between:
-  - **Learner**: Official statistical officer view (JSO, SSO, Deputy Director, Investigator).
-  - **Trainer**: NSSTA faculty view with authoring studio and item review tools.
-  - **Admin**: MoSPI leadership view with org-wide macro analytics.
-- **Active Officer Persona Switcher**: Real-time dropdown to test different official profiles (e.g. Aadeesh Sharma - JSO, Dr. Priyadarshini Rao - SSO, Rajesh Kumar Meena - Deputy Director, Vikramaditya Sengupta - Director NSSTA).
+Copy `.env.example` to `.env` in root and `server/.env`:
 
-### 2. Learner Dashboard
-- **Official Welcome Banner**: Displays officer name, Karmayogi ID (KY-MOSPI-2024), cadre, division, posting location, and qualification.
-- **Competency Heatmap Matrix**: An interactive grid displaying 18 competencies across Statistical, Technical, Digital Governance, and Behavioural domains. Color-coded by Level 1 (Novice) through Level 5 (Expert) with benchmark target overlays.
-- **Priority Skill Gap Cards**: Top critical deficits with progress bars and direct link to bridge them.
-- **Sequenced Learning Roadmap**: Step-by-step curriculum progression showing enrolled, in-progress, and completed modules.
-- **Live KPI Counters**: Learning hours clocked, enrolled modules, Karmayogi credits earned, and certified tests passed.
+```env
+# Server Port & Client URL
+PORT=5000
+CLIENT_URL=http://localhost:5173
+JWT_SECRET=skill_setu_super_secret_jwt_key_2026_secure
 
-### 3. Competency Profiling Engine
-- Official service record form: Designation, Cadre (ISS, SSS, Non-Cadre, IT), Division, Academic & Technical Qualifications, Years in Service, and Specialized Survey Experience.
-- **"Generate AI Competency Profile"**: Simulates a 4-stage rule engine with an evaluation log that recalculates baseline proficiency scores based on official parameters.
+# Database URL (Supabase PostgreSQL or zero-config local SQLite)
+# Supabase format: postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
+DATABASE_URL="file:./dev.db"
 
-### 4. Skill-Gap Analysis Engine
-- **Target Role Selector**: Compare current proficiency against 5 promotional benchmarks:
-  - *Senior Statistical Officer (SSO)*
-  - *Assistant Director (ISS Group A)*
-  - *Deputy Director (National Accounts Division)*
-  - *Lead Data Scientist (Center of Excellence in AI)*
-  - *GIS & Spatial Analytics Lead (SDRD)*
-- **Dual Recharts Visualizations**:
-  - **Radar Chart Overlay**: 8-axis spider chart comparing current verified score against target requirement.
-  - **Grouped Bar Chart**: Side-by-side level bars indicating exact deficit margins.
-- **Detailed Gap Matrix Table**: Complete listing of codes, competencies, current level, required level, delta (-1, -2), and urgency badge (*Critical Deficit*, *Moderate Gap*, *Satisfied*).
+# Supabase Auth & Storage
+SUPABASE_URL=https://[YOUR-PROJECT-REF].supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
-### 5. Explainable AI Recommendation Engine
-- Deterministic ranking algorithm prioritizing courses that close the user's highest deficits.
-- **Transparent Explainability Card**: Shows explicit reasoning for every recommended course:
-  > *"High Priority: Your current verified level in Survey Design & Sampling is Level 2, while Senior Statistical Officer mandates Level 3 (Deficit: -1). Completing this accredited course bridges this critical gap."*
-- **1-Click Enroll**: Instantly registers the course on iGOT Karmayogi, adds it to the Active Learning Roadmap, and displays an official toast.
+# Google Gemini API
+GEMINI_API_KEY=AIzaSy...
+GEMINI_MODEL=gemini-1.5-flash
 
-### 6. iGOT Course Catalogue
-- Searchable, filterable catalogue of 18 accredited modules.
-- Filters: Competency Category (Statistical, Technical, Digital Governance, Behavioural) and Level (Beginner, Intermediate, Advanced).
-- Displays course duration, provider (NSSTA, ISI Kolkata, RBI Academy, NIC, IIT Delhi), rating, enrolled learners, and syllabus outline.
-
-### 7. AI Intelligent Assessment Engine (Trainer Studio)
-- **Simulated Document Ingestion**: Upload ministry manuals or circulars (e.g. `MoSPI_National_Accounts_Manual_2025.pdf`).
-- **5-Stage Animated Pipeline Stepper**:
-  1. *Text & Schema Extraction*
-  2. *Semantic Segmentation*
-  3. *MCQ Item Generation*
-  4. *Psychometric Validation*
-  5. *Trainer Review & Publishing*
-- **Trainer Review Desk**: NSSTA faculty can preview synthesized MCQs, inline edit question stems, approve or reject individual items, and publish directly to the live examination bank.
-
-### 8. Interactive Quiz Taking & Verified Competency Upgrade
-- Clean, focused examination interface with a live countdown timer and question navigation grid.
-- Instant grading with passing benchmark verification.
-- **Detailed Solutions**: Explanations with official MoSPI citations for every question.
-- **Animated Competency Level Upgrade Celebration**: Passing the test triggers an animated modal displaying the jump from Level N to Level N+1, awarding **+150 iGOT Karmayogi Credits** to the officer's permanent record!
-
-### 9. Setu Saathi (कौशल साथी) AI Chat Assistant
-- Floating bottom-right chat widget with state-aware intelligence.
-- Canned questions and smart matching for:
-  - *"Why was this course recommended to me?"*
-  - *"What are my critical skill gaps for promotion to SSO?"*
-  - *"Explain my last quiz mistake"*
-  - *"How is Jevons Formula used in CPI compilation?"*
-  - *"What is the DPDP Act 2023 statistical exemption?"*
-
-### 10. Admin & Leadership Analytics Dashboard
-- **Ministry Competency Distribution**: Donut chart illustrating the proportion of Novice, Beginner, Intermediate, Advanced, and Expert officers.
-- **Emerging Skill Demand Trajectory**: Line chart projecting workforce demand for Python, AI/ML, DPDP Privacy, and Cloud APIs through 2027.
-- **Department Heatmap Matrix**: Division-level proficiency indices across FOD, SDRD, NAD, ESD, DQAD, and NSSTA.
-- **Cadre Breakdown**: Comparative metrics for SSS, ISS, Non-Cadre, and Contractual IT staff.
-
-### 11. Executive Reports & Audit Desk
-- Gazette-formatted training audit report suitable for Parliamentary Standing Committee reviews.
-- Filters by audit quarter and cadre.
-- Simulated **"Export Official PDF"** and **"Export Excel"** download actions with feedback toasts.
-
----
-
-## 📊 MoSPI Competency Framework & Taxonomy
-
-Skill Setu organizes official capabilities into 4 distinct domains aligned with National Statistical Commission (NSC) standards:
-
-```
-Competency Domains
-├── 1. Statistical Domain
-│   ├── STAT-01: Survey Design & Sampling (Stratification, Multi-stage, GREG)
-│   ├── STAT-02: National Accounts & GDP (SNA 2008/2025, GVA, FISIM)
-│   ├── STAT-03: Price Statistics (CPI / WPI, Jevons Index, Hedonics)
-│   ├── STAT-04: Labour & Employment Statistics (PLFS, UPSS, CWS)
-│   ├── STAT-05: Index of Industrial Production (IIP, Use-based, ASI)
-│   └── STAT-06: SDG Indicators & Monitoring (National Indicator Framework)
-├── 2. Technical Domain
-│   ├── TECH-01: Python for Official Statistics (Pandas, Chunking, Automation)
-│   ├── TECH-02: Advanced R & R-Shiny (package:survey, Quarto, Dashboards)
-│   ├── TECH-03: SQL & Relational Databases (PostgreSQL, Window Functions)
-│   ├── TECH-04: GIS & Spatial Mapping (QGIS, Digital Enumeration Blocks)
-│   ├── TECH-05: AI & Machine Learning (NLP for NIC/NCO Auto-coding, Nowcasting)
-│   └── TECH-06: Cloud Infrastructure & Open Data APIs (MeghRaj, data.gov.in)
-├── 3. Digital Governance Domain
-│   ├── GOV-01: Data Privacy & DPDP Act 2023 (Exemptions, SDC, K-Anonymity)
-│   ├── GOV-02: Cyber Security in Government Systems (CERT-In, CAPI Tablets)
-│   └── GOV-03: India Digital Public Infrastructure (India Stack, PM GatiShakti)
-└── 4. Behavioural Domain
-    ├── BEH-01: Public Leadership & Ethics (UN Fundamental Principles)
-    ├── BEH-02: Stakeholder Communication (Parliamentary Questions, Press Notes)
-    └── BEH-03: Field Survey Project Management (GFR 2017, GeM, FOD Logistics)
+# Google OAuth (for Supabase Google sign-in)
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
 ```
 
-### Proficiency Level Definitions (1 - 5)
-
-| Level | Designation | Characteristic Capabilities |
-| :---: | :--- | :--- |
-| **L1** | **Novice** | Understands foundational concepts, elementary definitions, and basic civil service rules. |
-| **L2** | **Beginner** | Can perform routine primary data collection, single-stage frame construction, and preliminary validation checks. |
-| **L3** | **Intermediate** | Independently executes multi-stage sampling designs, compiles sectoral GVA, writes SQL queries, and analyzes unit-level microdata. |
-| **L4** | **Advanced** | Calibrates survey weights, formulates Supply-Use Tables, builds automated Python pipelines, and leads regional field operations. |
-| **L5** | **Expert** | National authority advising the National Statistical Commission (NSC), UNSD, and ILO on statistical methodology revisions. |
+> **Note on Zero-Config Local Testing**:
+> If you do not yet have a Supabase project or Gemini key, the application works immediately out-of-the-box using the bundled SQLite database (`dev.db`) and smart heuristic AI fallback. You can input your cloud credentials whenever you're ready to deploy to production.
 
 ---
 
-## 🚀 Setup & Local Execution Guide
+## 🛠️ Installation & Local Setup
 
-### Prerequisites
-- **Node.js**: Version 18.0 or newer (tested on Node v24.19.0)
-- **NPM**: Version 9.0 or newer (tested on npm 11.17.0)
-- Operating System: Windows 10/11, macOS, or Linux
+### 1. Clone the Repository
+```bash
+git clone https://github.com/Itsmeaadeesh/skill-setu.git
+cd skill-setu
+```
 
-### Installation Steps
+### 2. Install Dependencies
+```bash
+# Install frontend dependencies
+npm install
 
-1. **Navigate to the Project Directory**:
-   ```bash
-   cd "C:\Users\Aadeesh Jain\.gemini\antigravity\scratch\skill-setu"
-   ```
+# Install backend dependencies
+cd server
+npm install
+cd ..
+```
 
-2. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
+### 3. Initialize & Seed Database
+```bash
+# Push Prisma schema and seed initial tracks, courses, skills, and baseline quizzes
+npm run seed
+```
 
-3. **Run the Development Server**:
-   ```bash
-   npm run dev
-   ```
-   The application will boot at: `http://localhost:5173/`
+### 4. Run the Full-Stack Application
+```bash
+# Start both Backend API (:5000) and Vite Web Frontend (:5173) simultaneously:
+npm run fullstack
+```
 
-4. **Build for Production**:
-   ```bash
-   npm run build
-   ```
-   Produces an optimized static production distribution in the `dist/` folder.
+Or run them in separate terminals:
+- **Terminal 1 (Backend API)**: `npm run server`
+- **Terminal 2 (Vite Frontend)**: `npm run dev`
 
-5. **Preview Production Build**:
-   ```bash
-   npm run preview
-   ```
-
----
-
-## 🧑‍⚖️ Evaluator & Judge Walkthrough Script
-
-Judges evaluating the platform for Smart India Hackathon 2026 can follow this 5-minute click-through demonstration script:
-
-1. **Step 1: Inspect the Learner Dashboard**
-   - Note the official MoSPI/NSSTA government header, Ashoka Stambh crest, and Tiranga ribbon.
-   - Observe the **Competency Heatmap** showing Level 1 to Level 5 color coding for *Aadeesh Sharma (JSO)*.
-2. **Step 2: Explore the Skill-Gap Engine**
-   - Click the **"Skill-Gap Engine"** tab.
-   - Switch the target role dropdown from *Senior Statistical Officer* to *Deputy Director (National Accounts)*.
-   - Observe the **Radar Chart** and **Grouped Bar Chart** instantly recompute deficits in real time.
-3. **Step 3: Review Explainable AI Recommendations**
-   - Click the **"AI Recommendations"** tab.
-   - Inspect the **"AI Recommendation Rationale"** boxes explaining *why* each course was ranked.
-   - Click **"Enroll on iGOT"** on *Advanced Survey Sampling & Estimation Techniques*.
-   - Confirm that the toast triggers and the course appears in the active learning roadmap.
-4. **Step 4: Experience the AI Assessment Pipeline & Take a Quiz**
-   - Switch role to **Trainer** using the SSO switcher in the top bar.
-   - Click **"AI Assessment Studio"**, select a sample manual, and observe the **5-step animated AI pipeline stepper**.
-   - Approve/edit a question, then switch back to **Learner** role.
-   - Click **"Start Assessment"** on the *Survey Sampling Assessment 2026*.
-   - Complete the 5 questions, submit, and observe the **animated Level-Up Celebration Modal** upgrading your verified competency level!
-5. **Step 5: Inspect Admin Analytics & Ask Setu Saathi**
-   - Switch role to **Admin** to review the **Org-wide Competency Donut Chart**, **Emerging Demand Trajectory**, and **Department Heatmap**.
-   - Click the floating **Setu Saathi** AI chat button at the bottom-right and click the quick chip: *"Why was this course recommended?"*.
-   - Note the context-aware, official response.
+Open your browser at **`http://localhost:5173`**.
 
 ---
 
-## 📜 Compliance & Disclaimers
+## 🧪 Automated Testing & Verification
 
-- **iGOT Karmayogi Bharat**: Demonstrates simulated integration adhering to FRAC guidelines; production deployment utilizes live DoPT/Karmayogi Bharat RESTful APIs.
-- **Privacy & Security**: Operates completely in-memory without persistent storage leaks, conforming to the spirit of the **Digital Personal Data Protection (DPDP) Act 2023**.
-- **SIH 2026**: Developed for Problem Statement ID **SIH26101** under the Ministry of Statistics and Programme Implementation.
+Execute the end-to-end verification suite:
+
+```bash
+npm run test:e2e
+```
+
+The test validates all 10 core modules:
+- ✅ Backend healthcheck and database connectivity
+- ✅ Student authentication and session profile
+- ✅ Track listing and requirement resolution
+- ✅ Skill gap analysis with descending deficit ranking & difficulty tagging
+- ✅ Recommendation engine linear foundational-first path generation
+- ✅ Assessment self-rating calibration and profile update
+- ✅ AI quiz synthesis from document upload with Zod schema validation
+- ✅ Instant quiz attempt scoring and SkillProfile promotion
+- ✅ Telemetry and attempt history persistence
+- ✅ Admin institutional analytics and aggregate gap charts
+
+---
+
+## 👥 Evaluator Personas (1-Click Demo Accounts)
+
+On the login page or top navigation bar, use the **Persona Switcher** to test without creating an account:
+
+| Persona | Role | Enrolled Track | Focus |
+|---|---|---|---|
+| **Aaditya Sharma** (`learner@skillsetu.ai`) | Learner | Frontend Developer | Calibrated gaps in React & TypeScript |
+| **Rohan Patel** (`analyst@skillsetu.ai`) | Learner | Data Analyst | SQL & Python for Data analysis |
+| **Dr. Sunita Rao** (`admin@skillsetu.ai`) | Admin | Institution Director | Full institutional analytics & quiz manager |
+
+*(Default password for all seeded accounts: `Password123!`)*
+
+---
+
+## 🎓 College Minor Project Checklist
+
+- [x] Full-stack architecture with React 19, TypeScript, Express, and Prisma ORM.
+- [x] Supabase Auth (Email/Password + Google OAuth) and Supabase Storage integration.
+- [x] Real-time Recharts visualizations (Radar Chart & Comparative Bar Charts).
+- [x] Google Gemini Flash integration with strict JSON mode & Zod schema validation.
+- [x] Document parser supporting PDF, DOCX, PPTX, and Tesseract OCR for scanned documents.
+- [x] Instant grading and automatic recalculation of skill profiles and learning paths.
+- [x] Role-gated administration dashboard with platform-wide gap aggregation.
+- [x] Clean, responsive, card-based EdTech UI with dark/light mode.
+- [x] Portfolio and presentation ready with zero-friction evaluation.
+
+---
+
+## 📄 License
+MIT © 2026 Skill Setu Development Team

@@ -1,5 +1,6 @@
-﻿import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { usePlatform } from "../context/PlatformContext.jsx";
+import { api } from "../services/api.js";
 import {
   MessageSquare,
   X,
@@ -7,176 +8,225 @@ import {
   Sparkles,
   Bot,
   User,
-  HelpCircle,
-  Minimize2,
+  Loader2,
+  ChevronRight,
+  HelpCircle
 } from "lucide-react";
 
 export default function ChatWidget() {
-  const { chatOpen, setChatOpen, chatMessages, sendChatMessage } = usePlatform();
-  const [inputText, setInputText] = useState("");
+  const { isAuthenticated, currentUser, gapData } = usePlatform();
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    {
+      id: "welcome",
+      sender: "assistant",
+      text: "Hi there! I'm Setu AI, your personalized learning advisor. Ask me anything about your current skill gaps, course recommendations, or study plan!"
+    }
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  // Load past history when opened
+  useEffect(() => {
+    if (isOpen && isAuthenticated) {
+      api.getChatHistory().then((history) => {
+        if (history && history.length > 0) {
+          const formatted = history.map((m) => ({
+            id: m.id,
+            sender: m.sender,
+            text: m.message,
+            time: new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+          }));
+          setMessages(formatted);
+        }
+      }).catch(console.error);
+    }
+  }, [isOpen, isAuthenticated]);
 
   useEffect(() => {
-    if (chatOpen) {
-      scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  if (!isAuthenticated) return null;
+
+  const handleSend = async (textToSend) => {
+    const messageText = textToSend || input;
+    if (!messageText.trim() || loading) return;
+
+    const userMsg = {
+      id: Date.now().toString(),
+      sender: "user",
+      text: messageText.trim(),
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    };
+
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const res = await api.sendChatMessage(userMsg.text);
+      const assistantMsg = {
+        id: (Date.now() + 1).toString(),
+        sender: "assistant",
+        text: res.reply,
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          sender: "assistant",
+          text: "I encountered a hiccup connecting to the pedagogical engine. Please try asking again!",
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        }
+      ]);
+    } finally {
+      setLoading(false);
     }
-  }, [chatMessages, chatOpen]);
-
-  const handleSend = (e) => {
-    e.preventDefault();
-    if (!inputText.trim()) return;
-    sendChatMessage(inputText);
-    setInputText("");
   };
 
-  const handleSuggestion = (text) => {
-    sendChatMessage(text);
-  };
+  const promptChips = [
+    "Why was this course recommended?",
+    "What should I learn next?",
+    "Explain my top skill gap"
+  ];
 
   return (
-    <div className="fixed bottom-5 right-5 z-40 select-none">
-      {!chatOpen && (
+    <div className="fixed bottom-6 right-6 z-50">
+      {/* Floating Toggle Button */}
+      {!isOpen && (
         <button
-          onClick={() => setChatOpen(true)}
-          className="bg-[#0B3D91] hover:bg-[#07265D] text-white p-3.5 rounded-full shadow-2xl border-2 border-amber-400 flex items-center space-x-2 transition-all transform hover:scale-105 group"
-          title="Open Setu Saathi AI Chat"
+          onClick={() => setIsOpen(true)}
+          className="group relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-105 active:scale-95 transition-all duration-200"
         >
           <div className="relative">
-            <Bot className="w-6 h-6 text-amber-300" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-[#0B3D91]"></span>
+            <Sparkles className="h-5 w-5" />
+            <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-indigo-600 animate-pulse"></span>
           </div>
-          <span className="text-xs font-bold font-serif-gov pr-1 hidden sm:inline text-amber-200">
-            Setu Saathi AI
-          </span>
+          <span className="text-xs font-bold tracking-wide pr-1">Ask Setu AI</span>
         </button>
       )}
 
-      {chatOpen && (
-        <div className="bg-white rounded-xl shadow-2xl border-2 border-[#0B3D91] w-[350px] sm:w-[400px] h-[520px] flex flex-col overflow-hidden animate-in slide-in-from-bottom-5">
-          {/* Header */}
-          <div className="bg-[#07265D] text-white p-3.5 flex items-center justify-between border-b-2 border-amber-500">
-            <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-full bg-amber-400 text-[#07265D] flex items-center justify-center font-bold">
-                <Bot className="w-5 h-5" />
+      {/* Interactive Chat Window */}
+      {isOpen && (
+        <div className="w-[360px] sm:w-[400px] h-[540px] max-h-[85vh] bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-200/80 dark:border-gray-800 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200">
+          
+          {/* Window Header */}
+          <div className="px-4 py-3.5 bg-gradient-to-r from-indigo-600 to-violet-700 text-white flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-xl bg-white/15 flex items-center justify-center backdrop-blur-sm">
+                <Bot className="h-5 w-5" />
               </div>
               <div>
-                <div className="flex items-center space-x-1.5">
-                  <h3 className="font-bold text-sm font-serif-gov text-white">Setu Saathi</h3>
-                  <span className="text-[9px] bg-amber-400 text-blue-950 font-extrabold px-1.5 py-0.2 rounded">
-                    MoSPI AI
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-bold">Setu AI Advisor</span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-400/20 text-emerald-300 font-semibold border border-emerald-300/30">
+                    Live LLM
                   </span>
                 </div>
-                <div className="text-[10px] text-gray-300 flex items-center space-x-1">
-                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-ping"></span>
-                  <span>Competency & Learning Assistant</span>
-                </div>
+                <p className="text-[11px] text-indigo-200">
+                  Grounded in your active skill gaps
+                </p>
               </div>
             </div>
+
             <button
-              onClick={() => setChatOpen(false)}
-              className="text-gray-300 hover:text-white p-1 rounded"
+              onClick={() => setIsOpen(false)}
+              className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition"
             >
-              <Minimize2 className="w-4 h-4" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
-          {/* Messages Body */}
-          <div className="flex-1 p-3 overflow-y-auto space-y-3 bg-[#F8FAFC]">
-            {chatMessages.map((msg, idx) => {
-              const isBot = msg.sender === "bot";
+          {/* Messages Area */}
+          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50/50 dark:bg-gray-950/40">
+            {messages.map((msg) => {
+              const isUser = msg.sender === "user";
               return (
                 <div
-                  key={idx}
-                  className={`flex flex-col ${isBot ? "items-start" : "items-end"}`}
+                  key={msg.id}
+                  className={`flex gap-2.5 ${isUser ? "justify-end" : "justify-start"}`}
                 >
-                  <div
-                    className={`max-w-[85%] p-3 rounded-xl text-xs leading-relaxed shadow-xs ${
-                      isBot
-                        ? "bg-white text-gray-800 border border-gray-200 rounded-tl-none"
-                        : "bg-[#0B3D91] text-white rounded-tr-none"
-                    }`}
-                  >
-                    {isBot && (
-                      <div className="text-[10px] font-bold text-blue-900 mb-1 flex items-center space-x-1">
-                        <Sparkles className="w-3 h-3 text-amber-500" />
-                        <span>Setu Intelligence</span>
-                      </div>
-                    )}
-                    <p className="whitespace-pre-line">{msg.text}</p>
-                    <div
-                      className={`text-[9px] mt-1 text-right ${
-                        isBot ? "text-gray-400" : "text-blue-200"
-                      }`}
-                    >
-                      {msg.timestamp}
-                    </div>
-                  </div>
-
-                  {/* Suggestion Chips */}
-                  {isBot && msg.suggestions && (
-                    <div className="mt-2 flex flex-wrap gap-1.5 max-w-[90%]">
-                      {msg.suggestions.map((sug, sIdx) => (
-                        <button
-                          key={sIdx}
-                          onClick={() => handleSuggestion(sug)}
-                          className="text-[10px] bg-blue-50 hover:bg-blue-100 text-[#0B3D91] border border-blue-200 rounded-full px-2.5 py-1 text-left font-medium transition-colors"
-                        >
-                          {sug}
-                        </button>
-                      ))}
+                  {!isUser && (
+                    <div className="h-7 w-7 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 mt-0.5">
+                      <Sparkles className="h-3.5 w-3.5" />
                     </div>
                   )}
+
+                  <div
+                    className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap ${
+                      isUser
+                        ? "bg-indigo-600 text-white rounded-br-none shadow-sm"
+                        : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200/70 dark:border-gray-700/70 rounded-bl-none shadow-sm"
+                    }`}
+                  >
+                    {msg.text}
+                    {msg.time && (
+                      <div
+                        className={`text-[9px] mt-1 text-right ${
+                          isUser ? "text-indigo-200" : "text-gray-400"
+                        }`}
+                      >
+                        {msg.time}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
+
+            {loading && (
+              <div className="flex gap-2.5 justify-start">
+                <div className="h-7 w-7 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                  <Sparkles className="h-3.5 w-3.5 animate-spin" />
+                </div>
+                <div className="px-3.5 py-2.5 rounded-2xl rounded-bl-none bg-white dark:bg-gray-800 border border-gray-200/70 dark:border-gray-700/70 text-xs text-gray-500 flex items-center gap-2">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-600" />
+                  <span>Synthesizing pedagogical guidance...</span>
+                </div>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick Prompts Bar */}
-          <div className="px-3 py-1.5 bg-gray-100 border-t border-gray-200 flex items-center space-x-1.5 overflow-x-auto text-[10px] text-gray-600">
-            <span className="font-bold text-gray-500">Quick:</span>
-            <button
-              onClick={() => handleSuggestion("Why was this course recommended?")}
-              className="bg-white px-2 py-0.5 rounded border text-blue-700 whitespace-nowrap hover:bg-blue-50"
-            >
-              Why recommended?
-            </button>
-            <button
-              onClick={() => handleSuggestion("What are my critical skill gaps?")}
-              className="bg-white px-2 py-0.5 rounded border text-blue-700 whitespace-nowrap hover:bg-blue-50"
-            >
-              My Gaps
-            </button>
-            <button
-              onClick={() => handleSuggestion("Explain my last quiz mistake")}
-              className="bg-white px-2 py-0.5 rounded border text-blue-700 whitespace-nowrap hover:bg-blue-50"
-            >
-              Quiz Mistake
-            </button>
+          {/* Quick Prompt Chips */}
+          <div className="px-3 py-2 border-t border-gray-200/60 dark:border-gray-800 bg-white dark:bg-gray-900 flex gap-1.5 overflow-x-auto no-scrollbar">
+            {promptChips.map((chip, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSend(chip)}
+                className="shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60 hover:bg-indigo-100 transition"
+              >
+                {chip}
+              </button>
+            ))}
           </div>
 
-          {/* Input Form */}
+          {/* Input Bar */}
           <form
-            onSubmit={handleSend}
-            className="p-2.5 bg-white border-t border-gray-200 flex items-center space-x-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSend();
+            }}
+            className="p-3 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex items-center gap-2"
           >
             <input
               type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder="Ask about competencies, courses, or MoSPI rules..."
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-600"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask about your gaps or roadmap..."
+              className="flex-1 text-xs px-3.5 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 border-none text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             />
             <button
               type="submit"
-              disabled={!inputText.trim()}
-              className="bg-[#0B3D91] hover:bg-[#07265D] disabled:opacity-40 text-white p-2 rounded-lg transition-colors"
+              disabled={!input.trim() || loading}
+              className="h-9 w-9 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white flex items-center justify-center transition shrink-0"
             >
-              <Send className="w-4 h-4" />
+              <Send className="h-4 w-4" />
             </button>
           </form>
         </div>
